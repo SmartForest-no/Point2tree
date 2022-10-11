@@ -76,7 +76,7 @@ if [ $CLEAR_INPUT_FOLDER -eq 1 ]
 then
     # delete all the files and folders except the ply files in the input folder
     echo "Clearing input folder"
-    find $data_folder/ -type f ! -name '*.ply' -delete # delete all the files except the ply files
+    find $data_folder/ -type f ! -name '*.ply' ! -name '*.las' -delete # delete all the files except the ply and las files
     find $data_folder/* -type d -exec rm -rf {} + # delete all the folders in the input folder
 fi
 
@@ -148,8 +148,9 @@ mkdir -p $data_folder/results
 # # create the input data folder
 mkdir -p $data_folder/results/input_data
 
-# # move input data to the input data folder
+# # move input data (ply and las) to the input data folder
 find $data_folder/ -maxdepth 1 -type f -name '*.ply' -exec mv {} $data_folder/results/input_data/ \;
+find $data_folder/ -maxdepth 1 -type f -name '*.las' -exec mv {} $data_folder/results/input_data/ \;
 
 # # create the segmented point clouds folder
 mkdir -p $data_folder/results/segmented_point_clouds
@@ -169,6 +170,15 @@ for instance_segmented_point_cloud in $data_folder/instance_segmented_point_clou
     instance_segmented_point_cloud_name_no_ext="${instance_segmented_point_cloud_name%.*}"
     # move the instance segmented point cloud to the instance segmented point clouds folder
     find $instance_segmented_point_cloud/ -maxdepth 1 -type f -name '*.ply' -exec mv {} $data_folder/results/instance_segmented_point_clouds/$instance_segmented_point_cloud_name_no_ext.ply \;
+    # map the instance segmented point cloud to las file
+    pdal translate \
+    $data_folder/results/instance_segmented_point_clouds/$instance_segmented_point_cloud_name_no_ext.ply \
+    $data_folder/results/instance_segmented_point_clouds/$instance_segmented_point_cloud_name_no_ext.las \
+    --writers.las.dataformat_id=3 \
+    --writers.las.scale_x=0.01 \
+    --writers.las.scale_y=0.01 \
+    --writers.las.scale_z=0.01 \
+    --writers.las.extra_dims=all
 done
 
 echo "Done"
