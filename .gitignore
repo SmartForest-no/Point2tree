@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.ply
+*.laz
+*.las
+*.csv
+*.pickle
+*.zip
+*.tar.gz
+*.tgz
+*.tmp
+.vscode/
+sample_data/segmented_point_clouds/*
+*.dat
+*.json
