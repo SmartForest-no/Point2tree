@@ -53,6 +53,8 @@ In order to run a whole pipeline run the following command: `./run_all.sh folder
 
 It may take <ins> very long time </ins> depending on your machine and the number of files and if you change the parameter if points density (by default its 150) to some lower number. The lower the number the bigger pointclounds are to be precessed and more time it may take. Keep in mind that at some point (for too low of the number) the pipeline may break. 
 
+The default model which is available in the repo in `fsct\model\model.path` was trained on the nibio data with <ins> 10 cm sampling </ins> the val accuracy was approx. 0.92.
+
 Make sure that you put the data in `*.las` format to this folder. If your files are in a different format e.g. `*.laz` you can use `python nibio_preprocessing/convert_files_in_folder.py --input_folder input_folder_name --output_folder output_folder las ` to convert your file to `*.las` format. 
 
 The pipeline is composed of serveral steps and input parametes in `run_all.sh input_folder_name` should be set before the run. The default parameters are as follows:
