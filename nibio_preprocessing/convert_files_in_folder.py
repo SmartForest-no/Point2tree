@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ConvertFilesInFolder(object):
-    def __init__(self, input_folder, output_folder, out_file_type, verbose=False):
+    def __init__(self, input_folder, output_folder, out_file_type, in_place=False, verbose=False):
         """
         There are following available file types:
         - las
@@ -19,6 +19,7 @@ class ConvertFilesInFolder(object):
         self.input_folder = input_folder
         self.output_folder = output_folder
         self.out_file_type = out_file_type
+        self.in_place = in_place
         self.verbose = verbose
 
     def convert_file(self, file_path):
@@ -41,13 +42,19 @@ class ConvertFilesInFolder(object):
         os.system(command)
 
         # use logging to print out the progress
-        logging.info("Converted file {} to {}.".format(file_name, self.out_file_type))
+        if self.verbose:
+            logging.info("Converted {} to {}".format(file_path, output_file_path))
+
 
     # convert all files in the input folder
     def convert_files(self):
         """
         Convert all files in the input folder to the specified output file type.
         """
+        # print if in_place is True
+        if self.in_place:
+            logging.info("Converting files in place.")
+
         # get paths to all files in the input folder and subfolders
         if self.verbose:
             print("Searching for files in the input folder...")
@@ -79,6 +86,15 @@ class ConvertFilesInFolder(object):
             # use logging to print out the progress
             logging.info("Converted all files in the input folder to {}.".format(self.out_file_type))
 
+        # if in_place is True, delete all the original files
+        if self.in_place:
+            for file_path in tqdm(file_paths):
+                os.remove(file_path)
+            if self.verbose:
+                # use logging to print out the progress
+                logging.info("Deleted all the original files.")
+   
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_folder", help="Path to the folder with the files to convert.")
@@ -88,6 +104,7 @@ if __name__ == "__main__":
         default='ply', 
         help="The file type of the output files.There are following available file types: las, laz, ply"
         )
+    parser.add_argument("--in_place", action="store_true", help="If set, the original files will be deleted.")
     parser.add_argument("--verbose", help="Print more information.", action="store_true")
     args = parser.parse_args()
     # create an instance of the class
@@ -95,6 +112,7 @@ if __name__ == "__main__":
         args.input_folder, 
         args.output_folder, 
         args.out_file_type, 
+        args.in_place,
         args.verbose
         )
     # convert all files in the input folder
