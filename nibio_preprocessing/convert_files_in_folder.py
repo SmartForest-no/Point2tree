@@ -83,16 +83,16 @@ class ConvertFilesInFolder(object):
         
         # print out the progress
         if self.verbose:
-            # use logging to print out the progress
-            logging.info("Converted all files in the input folder to {}.".format(self.out_file_type))
+            # use logging to print out how many files were converted
+            logging.info("Converted {} files.".format(len(file_paths)))
 
         # if in_place is True, delete all the original files
         if self.in_place:
             for file_path in tqdm(file_paths):
                 os.remove(file_path)
             if self.verbose:
-                # use logging to print out the progress
-                logging.info("Deleted all the original files.")
+                # use logging to print out how many files were deleted
+                logging.info("Deleted {} files.".format(len(file_paths)))
    
 
 if __name__ == "__main__":

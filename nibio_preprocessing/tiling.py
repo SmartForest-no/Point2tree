@@ -72,15 +72,13 @@ class Tiling:
         This function will tile all the files in a folder
         """
         
-        # check if the output folder exists and remove it
-        if os.path.exists(self.output_folder):
-            os.system("rm -r " + self.output_folder)
-
-        os.makedirs(self.output_folder)
-
         # create a destination folder for all the tiles
-        # if not os.path.exists(self.output_folder):
-        #     os.makedirs(self.output_folder)
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+
+        # inform if the folder exists and is not empty
+        if os.listdir(self.output_folder):
+            print("The output folder is not empty. This might cause problems.")
 
         # get all the files in the input folder (ply format assummed)
         files = glob.glob(self.input_folder + "/*.ply") 
@@ -190,7 +188,7 @@ def main(input_folder, output_folder, tile_size=10, tile_buffer=0, do_mapping_to
 
 if __name__ == "__main__":
     # read command line arguments
-    parser = argparse.ArgumentParser(description="Tiling")
+    parser = argparse.ArgumentParser(description="Tiling. Needs a folder with ply files.")
     parser.add_argument(
         "-i",
         "--input_folder",
