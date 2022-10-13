@@ -97,8 +97,7 @@ find $data_folder/ -type f -name '*.segmented.ply' -exec mv {} $data_folder/segm
 echo "Tiling and tile index generation"
 python nibio_preprocessing/tiling.py -i $data_folder/segmented_point_clouds/ -o $data_folder/segmented_point_clouds/tiled
 
-#  iterate over all the segmented point clouds
-# check if the output folder exists
+# create folder for the output of the second step
 
 mkdir -p $data_folder/instance_segmented_point_clouds
 
