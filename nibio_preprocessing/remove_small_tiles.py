@@ -28,17 +28,40 @@ class RemoveSmallTiles():
 
         return density, number_of_points
 
+    # @staticmethod
+    # def remove_line_from_csv(path, line):
+    #     """
+    #     Remove a line from a csv file.
+    #     """
+    #     with open(path, 'r') as f:
+    #         lines = f.readlines()
+    #     with open(path, 'w') as f:
+    #         for i in range(len(lines)):
+    #             if i != line:
+    #                 f.write(lines[i])
+    
     @staticmethod
-    def remove_line_from_csv(path, line):
+    def remove_all_lines_from_csv(path, list_of_lines):
         """
-        Remove a line from a csv file.
+        Remove all lines from a csv file.
         """
+        # open the file
         with open(path, 'r') as f:
             lines = f.readlines()
+
+        # split lines into a dictionary with the line number as key and the line as value
+        lines_dict = {}
+        for i, line in enumerate(lines):
+            lines_dict[i] = line
+
+        # remove the lines from the dictionary that are in the list of lines to remove
+        for line in list_of_lines:
+            del lines_dict[line]
+
+        # write the dictionary back to the file
         with open(path, 'w') as f:
-            for i in range(len(lines)):
-                if i != line:
-                    f.write(lines[i])
+            for key, value in lines_dict.items():
+                f.write(value)
 
     def get_density_of_all_tiles(self):
         """
@@ -74,23 +97,20 @@ class RemoveSmallTiles():
         # get the density of all tiles
         densities_and_point_nr = self.get_density_of_all_tiles()
 
-        # remove the tiles that whicha are too small (points per m^3)
+        lines_to_remove = []
+
         for i, density in densities_and_point_nr.items():
-            if density[3] < 10000:
+            # remove the tile if the density is too small or number of points is too small
+            if density[2] < self.min_size or density[3] < 10000:
                 if self.verbose:
                     print(f'Removing {density[1]} which has only {density[3]} points')
                 os.remove(density[1])
-                self.remove_line_from_csv(self.tile_index_file, i)
+                # remove the line from the tile index file based on the file_name
+                line = int(density[0])
+                lines_to_remove.append(line)
 
-        # remove the tiles that of a small density
-        for i, density in densities_and_point_nr.items():
-            if density[2] < self.min_size:
-                if self.verbose:
-                    print(f'Removing tile {density[0]} with density {density[2]}')
-                # check if the tile is already removed
-                if os.path.exists(density[1]):
-                    os.remove(density[1])
-                    self.remove_line_from_csv(self.tile_index_file, i)
+        # remove the lines from the tile index file
+        self.remove_all_lines_from_csv(self.tile_index_file, lines_to_remove)
 
         # if verbose print the lowest and the highest density along with the tile name
         if self.verbose:
