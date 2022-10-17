@@ -94,9 +94,17 @@ echo "Tiling and tile index generation"
 python nibio_preprocessing/tiling.py \
 -i $data_folder/segmented_point_clouds/ \
 -o $data_folder/segmented_point_clouds/tiled \
---tile_size 5
+--tile_size 10
 
-# TODO: remove tiles which not dense enough
+# remove small tiles using nibio_preprocessing/remove_small_tiles.py
+for d in $data_folder/segmented_point_clouds/tiled/*; do 
+    echo "Removing small tiles from $d"
+    python nibio_preprocessing/remove_small_tiles.py \
+    --dir $d \
+    --tile_index $d/tile_index.dat \
+    --min_density 75 \
+    --verbose
+done
 
 # iterate over all the directories in the tiled folder
 for d in $data_folder/segmented_point_clouds/tiled/*/; do
@@ -107,8 +115,8 @@ for d in $data_folder/segmented_point_clouds/tiled/*/; do
         --batch_size 10 \
         --odir $d \
         --verbose \
-        --tile-index $d/tile_index.dat \
-        --buffer 0.5
+        # --tile-index $d/tile_index.dat \
+        # --buffer 2
     done
 done 
 
