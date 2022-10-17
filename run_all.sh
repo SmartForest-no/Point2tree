@@ -138,7 +138,9 @@ done
 
 # do merging of the instance segmented point clouds
 for instance_segmented_point_cloud in $data_folder/instance_segmented_point_clouds/*; do
-    python nibio_preprocessing/merging_and_labeling.py --data_folder $instance_segmented_point_cloud 
+    python nibio_preprocessing/merging_and_labeling.py \
+    --data_folder $instance_segmented_point_cloud \
+    --output_file $instance_segmented_point_cloud/output_instance_segmented.ply
 done
 
 # # create the results folder

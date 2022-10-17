@@ -55,7 +55,7 @@ def remove_leafoff_files(data_folder):
                     os.remove(os.path.join(root, file))
 
 
-def merge_ply_files(data_folder, output_file):
+def merge_ply_files(data_folder, output_file='output_instance_segmented.ply'):
     """
         data_folder: the folder where the ply files are stored
     """
@@ -71,13 +71,21 @@ def merge_ply_files(data_folder, output_file):
 
     data["pipeline"].append({"type": "filters.merge", "inputs": tags})
 
-    data["pipeline"].append({"type":"writers.ply", "filename":os.path.join(data_folder, output_file)})
+    if output_file == 'output_instance_segmented.ply':
+        # if the output file is the default one, then we want to save it in the data folder
+        data["pipeline"].append({"type":"writers.ply", "filename":os.path.join(data_folder, output_file)})
+    else:
+        # if the output file is not the default one, then we want to save it the target folder
+        data["pipeline"].append({"type":"writers.ply", "filename":output_file})
 
-
-    print("Merging was done for {} number of files".format(len(tags)))
+    # print where the file is saved
+    logging.info("The file is saved in: " + os.path.join(data_folder, output_file))
+    logging.info("Merging was done for {} number of files".format(len(tags)))
 
     pipeline = pdal.Pipeline(json.dumps(data))
     pipeline.execute()
+    
+    logging.info("Done")
 
 
 def main(data_folder, output_file="output_instance_segmented.ply"):
@@ -109,7 +117,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Label the instances in the ply files.')
     parser.add_argument('--data_folder', type=str, help='The folder where the ply files are stored')
     parser.add_argument('--output_file', help='The output file name.', default="output_instance_segmented.ply")
+    parser.add_argument('--only_merging', action='store_true', help='Only merge the ply files')
+
     args = parser.parse_args()
-    main(args.data_folder)
+
+    if args.only_merging:
+        print("Only merging the ply files")
+        merge_ply_files(args.data_folder, args.output_file)
+    else:
+        print("Labeling instances in ply files and merging them afterwards")
+        main(args.data_folder, args.output_file)
+
 
 
