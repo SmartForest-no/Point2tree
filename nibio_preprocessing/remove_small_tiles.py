@@ -1,5 +1,6 @@
 import glob
 import os
+import pandas as pd
 from numpy import number
 import plyfile
 
@@ -28,40 +29,19 @@ class RemoveSmallTiles():
 
         return density, number_of_points
 
-    # @staticmethod
-    # def remove_line_from_csv(path, line):
-    #     """
-    #     Remove a line from a csv file.
-    #     """
-    #     with open(path, 'r') as f:
-    #         lines = f.readlines()
-    #     with open(path, 'w') as f:
-    #         for i in range(len(lines)):
-    #             if i != line:
-    #                 f.write(lines[i])
-    
     @staticmethod
     def remove_all_lines_from_csv(path, list_of_lines):
         """
         Remove all lines from a csv file.
         """
         # open the file
-        with open(path, 'r') as f:
-            lines = f.readlines()
+        tile_index_csv = pd.read_csv(path, sep=' ', header=None, names=['tile_index', 'x_mean', 'y_mean'])
 
-        # split lines into a dictionary with the line number as key and the line as value
-        lines_dict = {}
-        for i, line in enumerate(lines):
-            lines_dict[i] = line
+        # remove the lines
+        tile_index_csv = tile_index_csv[~tile_index_csv.tile_index.isin(list_of_lines)]
 
-        # remove the lines from the dictionary that are in the list of lines to remove
-        for line in list_of_lines:
-            del lines_dict[line]
-
-        # write the dictionary back to the file
-        with open(path, 'w') as f:
-            for key, value in lines_dict.items():
-                f.write(value)
+        # save the file
+        tile_index_csv.to_csv(path, sep=' ', header=False, index=False)
 
     def get_density_of_all_tiles(self):
         """
