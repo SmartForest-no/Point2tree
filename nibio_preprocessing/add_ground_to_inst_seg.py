@@ -67,6 +67,9 @@ class AddGroundToInstSeg():
         las = self.add_ground_to_inst_seg()
         las.write(self.output_file)
 
+        if self.verbose:
+            print("The ground has been added to the instance segmentation file !")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--sem_seg_file", type=str, help="Path to semantic segmentation file")
