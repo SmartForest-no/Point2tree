@@ -241,5 +241,28 @@ for instance_segmented_point_cloud in $data_folder/instance_segmented_point_clou
     --writers.las.extra_dims=all
 done
 
+ # map all the files the segmented point cloud to las file in $data_folder/results/segmented_point_clouds/
+for segmented_point_cloud_in_ply in $data_folder/results/segmented_point_clouds/*; do
+    # get the prefix of the point clouds
+    SEGMENTED_POINT_CLOUDS_PREFIX="segmented."
+    # get the ending of the point clouds
+    SEGMENTED_POINT_CLOUDS_EXTENSION="ply"
+    # get the name of the ply point cloud
+    segmented_point_cloud_in_ply_name=$(basename $segmented_point_cloud_in_ply)
+    # got the name of the las file without the starting prefix and the .ply extension
+    segmented_point_cloud_in_las_name_no_prefix_no_extension=${segmented_point_cloud_in_ply_name#$SEGMENTED_POINT_CLOUDS_PREFIX}
+    segmented_point_cloud_in_las_name_no_extension=${segmented_point_cloud_in_las_name_no_prefix_no_extension%.$SEGMENTED_POINT_CLOUDS_EXTENSION}
+    # convert it to las and move it to the segmented point clouds folder
+    pdal translate \
+    $segmented_point_cloud_in_ply \
+    $data_folder/results/segmented_point_clouds/$segmented_point_cloud_in_las_name_no_extension.las \
+    --writers.las.dataformat_id=3 \
+    --writers.las.scale_x=0.01 \
+    --writers.las.scale_y=0.01 \
+    --writers.las.scale_z=0.01 \
+    --writers.las.extra_dims=all
+done
+
+
 echo "Done"
 echo "Results are in $data_folder/results"
