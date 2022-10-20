@@ -23,7 +23,7 @@ class AddGroundToInstSeg():
         # get header of inst seg
         header = inst_seg.header
         if self.verbose:
-            print("Header of instance segmentation: {}".format(header))
+            print("Header of instance segmentation: {}".format(header.version))
 
         # create new header
         new_header = laspy.LasHeader(point_format=point_format.id, version=header.version)
@@ -61,14 +61,14 @@ class AddGroundToInstSeg():
         for key in tmp_dict.keys():
             las[key] = tmp_dict[key]
 
-        return las
-
-    def main(self):
-        las = self.add_ground_to_inst_seg()
         las.write(self.output_file)
 
+        # if verbose is selected write the name of the output file the results will be saved to
         if self.verbose:
-            print("The ground has been added to the instance segmentation file !")
+            print("Results are saved to: {}".format(self.output_file))
+      
+
+        return las
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -84,4 +84,4 @@ if __name__ == "__main__":
         output_file_path=args.output_file,
         verbose=args.verbose
         )
-    add_ground_to_inst_seg.main()
+    add_ground_to_inst_seg.add_ground_to_inst_seg()

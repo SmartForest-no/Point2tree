@@ -257,6 +257,18 @@ for segmented_point_cloud_in_ply in $data_folder/results/segmented_point_clouds/
     --writers.las.extra_dims=all
 done
 
+python nibio_preprocessing/add_ground_to_inst_seg_folders.py --sem_seg_folder sample_playground/results/segmented_point_clouds/ --inst_seg_folder sample_playground/results/instance_segmented_point_clouds/ --output_folder sample_playground/instance_seg_with_ground --verbose
+
+# create the instance segmented point clouds with ground folder
+mkdir -p $data_folder/results/instance_segmented_point_clouds_with_ground
+ 
+# to add the ground to the instance segmented point clouds
+python nibio_preprocessing/add_ground_to_inst_seg_folders.py \
+--sem_seg_folder $data_folder/results/segmented_point_clouds/ \
+--inst_seg_folder $data_folder/results/instance_segmented_point_clouds/ \
+--output_folder $data_folder/results/instance_segmented_point_clouds_with_ground \
+--verbose
+
 echo " "
 echo "Done"
 # print path to the results folder and the subfolders
@@ -264,4 +276,5 @@ echo "Results can be found here: $data_folder/results"
 echo "Results containing the input point clouds can be found here:  $data_folder/results/input_data"
 echo "Results containing the segmented point clouds can be found here:  $data_folder/results/segmented_point_clouds"
 echo "Results containing the instance segmented point clouds can be found here:  $data_folder/results/instance_segmented_point_clouds"
+echo "Results containing the instance segmented point clouds with ground can be found here:  $data_folder/results/instance_segmented_point_clouds_with_ground"
 
