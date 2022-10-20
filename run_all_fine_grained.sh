@@ -226,8 +226,8 @@ mkdir -p $data_folder/results/instance_segmented_point_clouds
 for instance_segmented_point_cloud in $data_folder/instance_segmented_point_clouds/*; do
     # get the name of the instance segmented point cloud
     instance_segmented_point_cloud_name=$(basename $instance_segmented_point_cloud)
-    # get the name of the instance segmented point cloud without the extension
-    instance_segmented_point_cloud_name_no_ext="${instance_segmented_point_cloud_name%.*}"
+    # get the name of the instance segmented point cloud without the extension and add the suffix instance_segmented
+    instance_segmented_point_cloud_name_no_ext="${instance_segmented_point_cloud_name%.*}.instance_segmented"
     # move the instance segmented point cloud to the instance segmented point clouds folder
     find $instance_segmented_point_cloud/ -maxdepth 1 -type f -name '*.ply' -exec mv {} $data_folder/results/instance_segmented_point_clouds/$instance_segmented_point_cloud_name_no_ext.ply \;
     # map the instance segmented point cloud to las file
@@ -257,6 +257,11 @@ for segmented_point_cloud_in_ply in $data_folder/results/segmented_point_clouds/
     --writers.las.extra_dims=all
 done
 
-
+echo " "
 echo "Done"
-echo "Results are in $data_folder/results"
+# print path to the results folder and the subfolders
+echo "Results can be found here: $data_folder/results"
+echo "Results containing the input point clouds can be found here:  $data_folder/results/input_data"
+echo "Results containing the segmented point clouds can be found here:  $data_folder/results/segmented_point_clouds"
+echo "Results containing the instance segmented point clouds can be found here:  $data_folder/results/instance_segmented_point_clouds"
+
