@@ -235,13 +235,10 @@ for instance_segmented_point_cloud in $data_folder/instance_segmented_point_clou
     $data_folder/results/instance_segmented_point_clouds/$instance_segmented_point_cloud_name_no_ext.ply \
     $data_folder/results/instance_segmented_point_clouds/$instance_segmented_point_cloud_name_no_ext.las \
     --writers.las.dataformat_id=3 \
-    --writers.las.scale_x=0.01 \
-    --writers.las.scale_y=0.01 \
-    --writers.las.scale_z=0.01 \
     --writers.las.extra_dims=all
 done
 
- # map all the files the segmented point cloud to las file in $data_folder/results/segmented_point_clouds/
+ # change the names of the segmented files to *.segmented.las
 for segmented_point_cloud_in_ply in $data_folder/results/segmented_point_clouds/*; do
     # get the prefix of the point clouds
     SEGMENTED_POINT_CLOUDS_PREFIX="segmented."
@@ -257,9 +254,6 @@ for segmented_point_cloud_in_ply in $data_folder/results/segmented_point_clouds/
     $segmented_point_cloud_in_ply \
     $data_folder/results/segmented_point_clouds/$segmented_point_cloud_in_las_name_no_extension.las \
     --writers.las.dataformat_id=3 \
-    --writers.las.scale_x=0.01 \
-    --writers.las.scale_y=0.01 \
-    --writers.las.scale_z=0.01 \
     --writers.las.extra_dims=all
 done
 
