@@ -6,7 +6,7 @@ import fsct
 # These have been tuned to work on most high resolution forest point clouds without changing them.
 other_parameters = dict(model=os.path.join(fsct.__path__[0], 'model', 'model.pth'),
                         box_dims=np.array([6, 6, 8]),
-                        box_overlap=np.array([0.5, 0.5, 0.25]),
+                        box_overlap=np.array([0.5, 0.5, 0.25]), #  box_overlap=np.array([0.5, 0.5, 0.25]),
                         min_points_per_box=1000,
                         max_points_per_box=20000,
                         terrain_class=0,
@@ -19,7 +19,7 @@ other_parameters = dict(model=os.path.join(fsct.__path__[0], 'model', 'model.pth
                         num_neighbours=5,
                         slice_thickness=0.2,
                         slice_increment=0.05,
-                        subsample=True,
+                        subsample=False, # subsample=True
                         subsampling_min_spacing=0.01,
                         is_wood=1,
                         min_tree_cyls=10, 
