@@ -103,3 +103,11 @@ The repo comes with sample file. You can use them to test your setup. To run the
 chmod +x run_sample.sh
 ./run_sample.sh
 ```
+
+## Running with your files
+You have to provide a `folder_path`. This is the location of your `*.las` files.
+
+```
+chmod +x run_all_fine_grained.sh
+./run_all_fine_grained.sh folder_path
+```
