@@ -16,28 +16,38 @@ OS_TYPE=x86_64
 
 mkdir conda_installation
 cd conda_installation
-RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
 curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
 sudo bash Miniconda3-latest-Linux-x86_64.sh -p /miniconda -b
 sudo groupadd anaconda_admin
 sudo chown -R :anaconda_admin /miniconda
 sudo chmod -R 775 /miniconda 
 sudo adduser nibio anaconda_admin
-conda update conda
-conda init
+/miniconda/bin/conda update conda
+/miniconda/bin/conda init
+
+```
+You should reboot shell session at this point.
+```
+
 conda create --name pdal-env python=3.8.13
 conda activate pdal-env
 conda install -c conda-forge pdal python-pdal
+
 
 ```
 You should reboot shell session at this point. 
 Next, you should clone the repo with the following command: 
 
 ```
-git clone git@github.com:maciekwielgosz/FSCT.git
+git clone git@gitlab.nibio.no:maciekwielgosz/instance_segmentation_classic.git
 ```
 if you didn't exchange ssh keys you may need to use the following command:
- `git clone https://github.com/maciekwielgosz/FSCT.git`
+ `git clone https://gitlab.nibio.no/maciekwielgosz/instance_segmentation_classic`
+
+You have to install requirements for the repo.
+ ```
+ pip install -r requirements.txt
+ ```
 
 # Running the pipeline with the NIBIO code
 
