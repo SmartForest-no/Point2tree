@@ -2,9 +2,12 @@ import argparse
 from email import header
 import glob
 import os
-from pyexpat import XML_PARAM_ENTITY_PARSING_NEVER
 import laspy
 import numpy as np
+
+#TODO: remove ground if exists
+#TODO: add meriging of files into one file (maybe using pdal)
+
 
 class GetInstancesSideBySide():
     def __init__(self, input_folder, output_folder, instance_label='instance_nr', verbose=False):
@@ -43,6 +46,8 @@ class GetInstancesSideBySide():
         # process each file
         for file in files:
             instance_points, header, point_format = self.process_single_file(file)
+            # get the new box coordinates
+            new_mean_coordinates = self.get_new_coordinates(file)
         
             # save files to separate files
             for instance_label, points in instance_points.items():
@@ -50,31 +55,19 @@ class GetInstancesSideBySide():
                 new_header = laspy.LasHeader(point_format=point_format.id, version=header.version)
                 las = laspy.LasData(new_header)
             
-
                 # get box coordinates
                 min_x = np.min(points[:, 0])
-                max_x = np.max(points[:, 0])
                 min_y = np.min(points[:, 1])
-                max_y = np.max(points[:, 1])
                 min_z = np.min(points[:, 2])
-                max_z = np.max(points[:, 2])
-                # print box coordinates
-                print("Instance {} has box coordinates: ({}, {}, {}) - ({}, {}, {})".format(instance_label, min_x, min_y, min_z, max_x, max_y, max_z))
                 # zero the coordinates
                 points[:, 0] = points[:, 0] - min_x
                 points[:, 1] = points[:, 1] - min_y
                 points[:, 2] = points[:, 2] - min_z
-                # get the new box coordinates
-                min_x = np.min(points[:, 0])
-                max_x = np.max(points[:, 0])
-                min_y = np.min(points[:, 1])
-                max_y = np.max(points[:, 1])
-                min_z = np.min(points[:, 2])
-                max_z = np.max(points[:, 2])
-                # print the new box coordinates
-                print("Instance {} has zeroed box coordinates: ({}, {}, {}) - ({}, {}, {})".format(instance_label, min_x, min_y, min_z, max_x, max_y, max_z))
 
-            
+                # add the new coordinates
+                points[:, 0] = points[:, 0] + new_mean_coordinates[instance_label]['x_aligned']
+                points[:, 1] = points[:, 1] + new_mean_coordinates[instance_label]['y_aligned']
+
                 # add the points to the las file
                 las.x = points[:, 0]
                 las.y = points[:, 1]
@@ -84,33 +77,67 @@ class GetInstancesSideBySide():
                 if self.verbose:
                     print("Saved instance {} to file".format(instance_label))
 
-        # # get mean coordinates x, and y
-        # mean_x = np.mean(points[:, 0])
-        # mean_y = np.mean(points[:, 1])
 
-        # # get new coordinates for aligning the instances
-        # # get mean value of all y coordinates
-        # y_aligned = np.mean(points[:, 1])
-        # y_aligned = np.full((points.shape[0], 1), y_aligned)
-        # x_aligned = [mean_x[0]]
-        # for i in range(1,points[:,0].shape):
-        #     x_aligned[i] = x_aligned[i-1] + 0.5 * x_aligned[i-1] + 0.5 * mean_x[i]
+    def get_new_coordinates(self, file_path):
+        instance_points, _, _ = self.process_single_file(file_path)
 
+        instance_coordinates = {}
 
-    def get_new_coordinates(self, points):
-        pass
-        # save files to separate files
-            # for instance_label, points in instance_points.items():
-        # for instance_label, points in instance_points.items():
-        #     # get box coordinates
-        #     min_x = np.min(points[:, 0])
-        #     max_x = np.max(points[:, 0])
-        #     min_y = np.min(points[:, 1])
-        #     max_y = np.max(points[:, 1])
-        #     min_z = np.min(points[:, 2])
-        #     max_z = np.max(points[:, 2])
-        #     # put all the instances in one file using new coordinates
+        for instance_label, points in instance_points.items():
+            # get box coordinates
+            min_x = np.min(points[:, 0])
+            max_x = np.max(points[:, 0])
+            min_y = np.min(points[:, 1])
+            max_y = np.max(points[:, 1])
+            min_z = np.min(points[:, 2])
+            max_z = np.max(points[:, 2])
+            # zero the coordinates
+            points[:, 0] = points[:, 0] - min_x
+            points[:, 1] = points[:, 1] - min_y
+            points[:, 2] = points[:, 2] - min_z
+            # get the new box coordinates
+            min_x = np.min(points[:, 0])
+            max_x = np.max(points[:, 0])
+            min_y = np.min(points[:, 1])
+            max_y = np.max(points[:, 1])
+            min_z = np.min(points[:, 2])
+            max_z = np.max(points[:, 2])
+            # get mean coordinates x, and y
+            mean_x = np.mean(points[:, 0])
+            mean_y = np.mean(points[:, 1])
+            # put all to the dictionary
+            param={}
+            param['min_x'] = min_x
+            param['max_x'] = max_x
+            param['min_y'] = min_y
+            param['max_y'] = max_y
+            param['min_z'] = min_z
+            param['max_z'] = max_z
+            param['mean_x'] = (max_x - min_x) /2    
+            param['mean_y'] = (max_y - min_y) /2
+            instance_coordinates[instance_label] = param
 
+        # compute new coordinates
+        new_instance_coordinates = {}
+        # get a global mean value of all y coordinates
+        y_aligned = np.mean([instance_coordinates[instance_label]['mean_y'] for instance_label in instance_coordinates])
+        # all zeros
+
+        y_aligned = 0
+        # add it all the y coordinates in new_instance_coordinates
+        for i, instance_label in enumerate(instance_coordinates):
+            new_instance_coordinates[instance_label] = {}
+            new_instance_coordinates[instance_label]['y_aligned'] = y_aligned
+            # new_instance_coordinates[instance_label]['x_aligned'] = 0.5 * y_aligned + 0.5 * instance_coordinates[instance_label]['mean_x']
+            if i == 0:
+                new_instance_coordinates[instance_label]['x_aligned'] = instance_coordinates[instance_label]['mean_x']
+            else:
+                new_instance_coordinates[instance_label]['x_aligned'] = \
+                new_instance_coordinates[instance_label-1]['x_aligned'] \
+                + 1.0 * (instance_coordinates[instance_label-1]['max_x'] - (instance_coordinates[instance_label-1]['min_x'])) \
+                + 1.0 * (instance_coordinates[instance_label]['max_x'] - (instance_coordinates[instance_label]['min_x'])) 
+
+        return new_instance_coordinates
 
 if __name__ == "__main__":
     # parse input arguments
