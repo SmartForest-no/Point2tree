@@ -44,45 +44,45 @@ class GetInstancesSideBySide():
         for file in files:
             instance_points, header, point_format = self.process_single_file(file)
         
-        # save files to separate files
-        for instance_label, points in instance_points.items():
-            # creat a new las file
-            new_header = laspy.LasHeader(point_format=point_format.id, version=header.version)
-            las = laspy.LasData(new_header)
-         
+            # save files to separate files
+            for instance_label, points in instance_points.items():
+                # creat a new las file
+                new_header = laspy.LasHeader(point_format=point_format.id, version=header.version)
+                las = laspy.LasData(new_header)
+            
 
-            # get box coordinates
-            min_x = np.min(points[:, 0])
-            max_x = np.max(points[:, 0])
-            min_y = np.min(points[:, 1])
-            max_y = np.max(points[:, 1])
-            min_z = np.min(points[:, 2])
-            max_z = np.max(points[:, 2])
-            # print box coordinates
-            print("Instance {} has box coordinates: ({}, {}, {}) - ({}, {}, {})".format(instance_label, min_x, min_y, min_z, max_x, max_y, max_z))
-            # zero the coordinates
-            points[:, 0] = points[:, 0] - min_x
-            points[:, 1] = points[:, 1] - min_y
-            points[:, 2] = points[:, 2] - min_z
-            # get the new box coordinates
-            min_x = np.min(points[:, 0])
-            max_x = np.max(points[:, 0])
-            min_y = np.min(points[:, 1])
-            max_y = np.max(points[:, 1])
-            min_z = np.min(points[:, 2])
-            max_z = np.max(points[:, 2])
-            # print the new box coordinates
-            print("Instance {} has zeroed box coordinates: ({}, {}, {}) - ({}, {}, {})".format(instance_label, min_x, min_y, min_z, max_x, max_y, max_z))
+                # get box coordinates
+                min_x = np.min(points[:, 0])
+                max_x = np.max(points[:, 0])
+                min_y = np.min(points[:, 1])
+                max_y = np.max(points[:, 1])
+                min_z = np.min(points[:, 2])
+                max_z = np.max(points[:, 2])
+                # print box coordinates
+                print("Instance {} has box coordinates: ({}, {}, {}) - ({}, {}, {})".format(instance_label, min_x, min_y, min_z, max_x, max_y, max_z))
+                # zero the coordinates
+                points[:, 0] = points[:, 0] - min_x
+                points[:, 1] = points[:, 1] - min_y
+                points[:, 2] = points[:, 2] - min_z
+                # get the new box coordinates
+                min_x = np.min(points[:, 0])
+                max_x = np.max(points[:, 0])
+                min_y = np.min(points[:, 1])
+                max_y = np.max(points[:, 1])
+                min_z = np.min(points[:, 2])
+                max_z = np.max(points[:, 2])
+                # print the new box coordinates
+                print("Instance {} has zeroed box coordinates: ({}, {}, {}) - ({}, {}, {})".format(instance_label, min_x, min_y, min_z, max_x, max_y, max_z))
 
-        
-            # add the points to the las file
-            las.x = points[:, 0]
-            las.y = points[:, 1]
-            las.z = points[:, 2]
-            # write the las file to the output folder
-            las.write(os.path.join(self.output_folder, str(instance_label) + '.las'))
-            if self.verbose:
-                print("Saved instance {} to file".format(instance_label))
+            
+                # add the points to the las file
+                las.x = points[:, 0]
+                las.y = points[:, 1]
+                las.z = points[:, 2]
+                # write the las file to the output folder
+                las.write(os.path.join(self.output_folder, str(instance_label) + '.las'))
+                if self.verbose:
+                    print("Saved instance {} to file".format(instance_label))
 
         # # get mean coordinates x, and y
         # mean_x = np.mean(points[:, 0])
@@ -99,6 +99,8 @@ class GetInstancesSideBySide():
 
     def get_new_coordinates(self, points):
         pass
+        # save files to separate files
+            # for instance_label, points in instance_points.items():
         # for instance_label, points in instance_points.items():
         #     # get box coordinates
         #     min_x = np.min(points[:, 0])
