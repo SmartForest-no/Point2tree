@@ -32,12 +32,14 @@ class GetInstancesSideBySide():
 
     def process_folder(self):
         # get all files in the folder
-        files = glob.glob(self.input_folder + '/*.las')
+        files = glob.glob(self.input_folder + '/*.las', recursive=False)
+
         # create the output folder if it does not exist
         if not os.path.isdir(self.output_folder):
             os.mkdir(self.output_folder)
         # process each file
         for file in files:
+    
             instance_points = self.process_single_file(file)
             # get the new box coordinates
             new_mean_coordinates = self.get_new_coordinates(file)
@@ -81,10 +83,26 @@ class GetInstancesSideBySide():
         for file in files:
             if file != os.path.join(self.output_folder, 'merged_' + str(self.instance_label) + '.las'):
                 os.remove(file)
-                if self.verbose:
-                    print("Removed file: {}".format(file))
+
+        if self.verbose:
+            print("Done with removing all files exept merged")
+
+    def remove_all_files_in_output_folder(self):
+        # get all files in the folder
+        files = glob.glob(self.output_folder + '/*.las')
+        for file in files:
+            os.remove(file)
+
+        if self.verbose:
+            print("Done with removing all files")
 
     def merge_all_files(self):
+
+        # remove merged file if it exists
+        if os.path.isfile(os.path.join(self.output_folder, 'merged_' + str(self.instance_label) + '.las')):
+            os.remove(os.path.join(self.output_folder, 'merged_' + str(self.instance_label) + '.las'))
+            print("Removed file: {}".format(os.path.join(self.output_folder, 'merged_' + str(self.instance_label) + '.las')))
+
         # get all files in the folder
         files = glob.glob(self.output_folder + '/*.las')
         # create a new las file
@@ -103,7 +121,6 @@ class GetInstancesSideBySide():
   
         for key in tmp_dict.keys():
             las[key] = tmp_dict[key]
-
         # write the las file to the output folder and add suffix merged and self.instance_label
         las.write(os.path.join(self.output_folder, 'merged_' + str(self.instance_label) + '.las'))
         if self.verbose:
@@ -152,8 +169,9 @@ class GetInstancesSideBySide():
         # all zeros
 
         y_aligned = 0
+        instance_nr_list = list(instance_coordinates.keys())
         # add it all the y coordinates in new_instance_coordinates
-        for i, instance_label in enumerate(instance_coordinates):
+        for i, instance_label in enumerate(instance_nr_list):
             new_instance_coordinates[instance_label] = {}
             new_instance_coordinates[instance_label]['y_aligned'] = y_aligned
             # new_instance_coordinates[instance_label]['x_aligned'] = 0.5 * y_aligned + 0.5 * instance_coordinates[instance_label]['mean_x']
@@ -161,8 +179,8 @@ class GetInstancesSideBySide():
                 new_instance_coordinates[instance_label]['x_aligned'] = instance_coordinates[instance_label]['mean_x']
             else:
                 new_instance_coordinates[instance_label]['x_aligned'] = \
-                new_instance_coordinates[instance_label-1]['x_aligned'] \
-                + 1.0 * (instance_coordinates[instance_label-1]['max_x'] - (instance_coordinates[instance_label-1]['min_x'])) \
+                new_instance_coordinates[instance_nr_list[i - 1]]['x_aligned'] \
+                + 1.0 * (instance_coordinates[instance_nr_list[i - 1]]['max_x'] - (instance_coordinates[instance_nr_list[i - 1]]['min_x'])) \
                 + 1.0 * (instance_coordinates[instance_label]['max_x'] - (instance_coordinates[instance_label]['min_x'])) 
 
         return new_instance_coordinates
@@ -187,6 +205,8 @@ if __name__ == "__main__":
         args.output_folder,
         args.instance_label, 
         args.verbose)
+
+    # get_instances.remove_all_files_in_output_folder()
     get_instances.process_folder()
     if args.merge:
         get_instances.merge_all_files()
