@@ -15,7 +15,8 @@ class GetInstancesSideBySide():
         self.verbose = verbose
         self.las_file_header_version = str(1.2) # can be changed in the future 
         self.las_file_point_format_id = 3 # can be changed in the future
-
+        self.stats_file = os.path.join(self.output_folder, 'stats_' + str(self.instance_label) + '.csv')
+      
     def process_single_file(self, file_path):
         las_file = laspy.read(file_path)
         instance_labels = las_file[self.instance_label]
@@ -38,8 +39,13 @@ class GetInstancesSideBySide():
         if not os.path.isdir(self.output_folder):
             os.mkdir(self.output_folder)
         # process each file
+
+        # create a new csv file using pandas
+        import pandas as pd
+        df = pd.DataFrame(columns=['file_name', 'instance_label', 'min_x', 'max_x', 'min_y', 'max_y', 'min_z', 'max_z', 'number_of_points'])
+
         for file in files:
-    
+
             instance_points = self.process_single_file(file)
             # get the new box coordinates
             new_mean_coordinates = self.get_new_coordinates(file)
@@ -55,6 +61,26 @@ class GetInstancesSideBySide():
                 min_x = np.min(points[:, 0])
                 min_y = np.min(points[:, 1])
                 min_z = np.min(points[:, 2])
+
+                max_x = np.max(points[:, 0])
+                max_y = np.max(points[:, 1])
+                max_z = np.max(points[:, 2])
+
+                # add parameters to the dataframe
+                df = df.append(
+                    {
+                    'file_name': os.path.basename(file), 
+                    'instance_label': instance_label, 
+                    'min_x': min_x, 
+                    'max_x': max_x, 
+                    'min_y': min_y, 
+                    'max_y': max_y, 
+                    'min_z': min_z, 
+                    'max_z': max_z, 
+                    'number_of_points': len(points)
+                    }, ignore_index=True)
+
+          
                 # zero the coordinates
                 points[:, 0] = points[:, 0] - min_x
                 points[:, 1] = points[:, 1] - min_y
@@ -72,6 +98,8 @@ class GetInstancesSideBySide():
 
                 # write the las file to the output folder
                 las.write(os.path.join(self.output_folder, str(instance_label) + '.las'))
+                # write csv file
+                df.to_csv(self.stats_file, index=False)
             if self.verbose:
                 # print the number of instances which were saved and done
                 print("Saved {} instances".format(len(instance_points)))
