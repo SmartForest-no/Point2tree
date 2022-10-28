@@ -3,7 +3,7 @@
 ############################ parameters #################################################
 # General parameters
 CLEAR_INPUT_FOLDER=1  # 1: clear input folder, 0: not clear input folder
-CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
+CONDA_ENV="pdal-env" # conda environment for running the pipeline
 
 # Tiling parameters
 N_TILES=3
@@ -65,7 +65,7 @@ else
     echo "No las or laz files found in the input folder."
     echo "All files in the input folder should have *.las or *.laz extension."
     exit 1
-fi 
+fi
 
 # do the conversion from laz to las if there are laz files in place (this is need for metrics calculation)
 python nibio_preprocessing/convert_files_in_folder.py --input_folder $data_folder --output_folder $data_folder --out_file_type las --in_place --verbose
@@ -97,7 +97,7 @@ python nibio_preprocessing/tiling.py \
 --tile_size 10
 
 # remove small tiles using nibio_preprocessing/remove_small_tiles.py
-for d in $data_folder/segmented_point_clouds/tiled/*; do 
+for d in $data_folder/segmented_point_clouds/tiled/*; do
     echo "Removing small tiles from $d"
     python nibio_preprocessing/remove_small_tiles.py \
     --dir $d \
@@ -111,14 +111,15 @@ for d in $data_folder/segmented_point_clouds/tiled/*/; do
     for f in $d/*.ply; do
         echo "Processing $f file..."
         python fsct/run.py \
+        --model /home/nibio/mutable-outside-world/code/instance_segmentation_classic/fsct/model/model.pth \
         --point-cloud $f \
-        --batch_size 10 \
+        --batch_size 5 \
         --odir $d \
         --verbose \
         # --tile-index $d/tile_index.dat \
         # --buffer 2
     done
-done 
+done
 
 # remove all the files in the tiled subfolders except the *segmented.ply and tile_index.dat files
 find $data_folder/segmented_point_clouds/tiled/*/ -type f ! -name '*segmented.ply' ! -name 'tile_index.dat' -delete # delete all the files except the segmented.ply files
@@ -140,7 +141,7 @@ for d in $data_folder/segmented_point_clouds/tiled/*/; do
 done
 
 # rename all the segmented.ply files to .ply in the tiled subfolders
-for file in $data_folder/segmented_point_clouds/tiled/*/*; do 
+for file in $data_folder/segmented_point_clouds/tiled/*/*; do
     # skip if the file is not a ply file
     if [[ $file != *.ply ]]; then
         continue
@@ -221,7 +222,7 @@ find $data_folder/segmented_point_clouds/ -maxdepth 1 -type f -name '*segmented.
 # # create the instance segmented point clouds folder
 mkdir -p $data_folder/results/instance_segmented_point_clouds
 
-# iterate over all the instance segmented point clouds 
+# iterate over all the instance segmented point clouds
 # move instance segmented point clouds to the instance segmented point clouds folder and rename them
 for instance_segmented_point_cloud in $data_folder/instance_segmented_point_clouds/*; do
     # get the name of the instance segmented point cloud
@@ -261,7 +262,7 @@ python nibio_preprocessing/add_ground_to_inst_seg_folders.py --sem_seg_folder sa
 
 # create the instance segmented point clouds with ground folder
 mkdir -p $data_folder/results/instance_segmented_point_clouds_with_ground
- 
+
 # to add the ground to the instance segmented point clouds
 python nibio_preprocessing/add_ground_to_inst_seg_folders.py \
 --sem_seg_folder $data_folder/results/segmented_point_clouds/ \
