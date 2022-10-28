@@ -2,6 +2,7 @@ import argparse
 from email import header
 import glob
 import os
+from unicodedata import name
 import laspy
 import numpy as np
 
@@ -15,14 +16,12 @@ class GetInstancesSideBySide():
         self.output_folder = output_folder
         self.instance_label = instance_label
         self.verbose = verbose
+        self.las_file_header_version = str(1.2) # can be changed in the future 
+        self.las_file_point_format_id = 3 # can be changed in the future
+
 
     def process_single_file(self, file_path):
-        if self.verbose:
-            print("Processing file: {}".format(file_path))
         las_file = laspy.read(file_path)
-        # get file header version and point format
-        header = las_file.header
-        point_format = las_file.point_format
         # get the points
         points = np.vstack((las_file.x, las_file.y, las_file.z)).transpose()
         # get the instance labels
@@ -35,7 +34,7 @@ class GetInstancesSideBySide():
         for instance_label in unique_instance_labels:
             # get the points for the current instance
             instance_points[instance_label] = points[instance_labels == instance_label]
-        return instance_points, header, point_format
+        return instance_points
 
     def process_folder(self):
         # get all files in the folder
@@ -45,14 +44,15 @@ class GetInstancesSideBySide():
             os.mkdir(self.output_folder)
         # process each file
         for file in files:
-            instance_points, header, point_format = self.process_single_file(file)
+            instance_points = self.process_single_file(file)
             # get the new box coordinates
             new_mean_coordinates = self.get_new_coordinates(file)
         
             # save files to separate files
             for instance_label, points in instance_points.items():
                 # creat a new las file
-                new_header = laspy.LasHeader(point_format=point_format.id, version=header.version)
+                new_header = laspy.LasHeader(point_format=self.las_file_point_format_id, version=self.las_file_header_version)
+                new_header.add_extra_dim(laspy.ExtraBytesParams(name=str(self.instance_label), type=np.int32))
                 las = laspy.LasData(new_header)
             
                 # get box coordinates
@@ -72,14 +72,42 @@ class GetInstancesSideBySide():
                 las.x = points[:, 0]
                 las.y = points[:, 1]
                 las.z = points[:, 2]
+                las.instance_label = np.ones(points.shape[0]) * instance_label
                 # write the las file to the output folder
                 las.write(os.path.join(self.output_folder, str(instance_label) + '.las'))
-                if self.verbose:
-                    print("Saved instance {} to file".format(instance_label))
+            if self.verbose:
+                # print the number of instances which were saved and done
+                print("Saved {} instances".format(len(instance_points)))
+                print("Done with file: {}".format(file))
+
+    def merge_all_files(self):
+        # get all files in the folder
+        files = glob.glob(self.output_folder + '/*.las')
+        # create a new las file
+        new_header = laspy.LasHeader(point_format=self.las_file_point_format_id,  version=self.las_file_header_version)
+        new_header.add_extra_dim(laspy.ExtraBytesParams(name=str(self.instance_label), type=np.int32))
+        las = laspy.LasData(new_header)
+        tmp_dict = {}
+        small_subset = []
+        for item in small_subset:
+            tmp_dict[item] = []
+
+        for file in files:
+            # read the file
+            las_file = laspy.read(file)
+            # add the points to the las file
+            las.x = las_file.x
+            las.y = las_file.y
+            las.z = las_file.z
+            las.instance_nr = las_file.instance_nr
+        # write the las file to the output folder
+        las.write(os.path.join(self.output_folder, 'merged.las'))
+        if self.verbose:
+            print("Saved merged file")
 
 
     def get_new_coordinates(self, file_path):
-        instance_points, _, _ = self.process_single_file(file_path)
+        instance_points = self.process_single_file(file_path)
 
         instance_coordinates = {}
 
@@ -159,6 +187,7 @@ if __name__ == "__main__":
         args.instance_label, 
         args.verbose)
     get_instances.process_folder()
+    # get_instances.merge_all_files()
 
 
  
