@@ -6,9 +6,6 @@ from unicodedata import name
 import laspy
 import numpy as np
 
-#TODO: remove ground if exists
-#TODO: add meriging of files into one file (maybe using pdal)
-
 
 class GetInstancesSideBySide():
     def __init__(self, input_folder, output_folder, instance_label='instance_nr', verbose=False):
@@ -19,13 +16,10 @@ class GetInstancesSideBySide():
         self.las_file_header_version = str(1.2) # can be changed in the future 
         self.las_file_point_format_id = 3 # can be changed in the future
 
-
     def process_single_file(self, file_path):
         las_file = laspy.read(file_path)
-        # get the points
-        points = np.vstack((las_file.x, las_file.y, las_file.z)).transpose()
-        # get the instance labels
         instance_labels = las_file[self.instance_label]
+        points = np.vstack((las_file.x, las_file.y, las_file.z, instance_labels)).transpose()
         # get the unique instance labels
         unique_instance_labels = np.unique(instance_labels)
         # create a dictionary to store the points for each instance
@@ -72,13 +66,23 @@ class GetInstancesSideBySide():
                 las.x = points[:, 0]
                 las.y = points[:, 1]
                 las.z = points[:, 2]
-                las.instance_label = np.ones(points.shape[0]) * instance_label
+                las[str(self.instance_label)] = points[:, 3]
+
                 # write the las file to the output folder
                 las.write(os.path.join(self.output_folder, str(instance_label) + '.las'))
             if self.verbose:
                 # print the number of instances which were saved and done
                 print("Saved {} instances".format(len(instance_points)))
                 print("Done with file: {}".format(file))
+
+    def remove_all_files_in_output_folder_exept_merged(self):
+        # get all files in the folder
+        files = glob.glob(self.output_folder + '/*.las')
+        for file in files:
+            if file != os.path.join(self.output_folder, 'merged_' + str(self.instance_label) + '.las'):
+                os.remove(file)
+                if self.verbose:
+                    print("Removed file: {}".format(file))
 
     def merge_all_files(self):
         # get all files in the folder
@@ -88,23 +92,22 @@ class GetInstancesSideBySide():
         new_header.add_extra_dim(laspy.ExtraBytesParams(name=str(self.instance_label), type=np.int32))
         las = laspy.LasData(new_header)
         tmp_dict = {}
-        small_subset = []
+        small_subset = ['X', 'Y', 'Z', str(self.instance_label)]
         for item in small_subset:
             tmp_dict[item] = []
 
         for file in files:
-            # read the file
             las_file = laspy.read(file)
-            # add the points to the las file
-            las.x = las_file.x
-            las.y = las_file.y
-            las.z = las_file.z
-            las.instance_nr = las_file.instance_nr
-        # write the las file to the output folder
-        las.write(os.path.join(self.output_folder, 'merged.las'))
-        if self.verbose:
-            print("Saved merged file")
+            for item in list(small_subset):
+                tmp_dict[item] = np.append(tmp_dict[item], las_file[item])
+  
+        for key in tmp_dict.keys():
+            las[key] = tmp_dict[key]
 
+        # write the las file to the output folder and add suffix merged and self.instance_label
+        las.write(os.path.join(self.output_folder, 'merged_' + str(self.instance_label) + '.las'))
+        if self.verbose:
+            print("Done with merging all files")
 
     def get_new_coordinates(self, file_path):
         instance_points = self.process_single_file(file_path)
@@ -130,9 +133,6 @@ class GetInstancesSideBySide():
             max_y = np.max(points[:, 1])
             min_z = np.min(points[:, 2])
             max_z = np.max(points[:, 2])
-            # get mean coordinates x, and y
-            mean_x = np.mean(points[:, 0])
-            mean_y = np.mean(points[:, 1])
             # put all to the dictionary
             param={}
             param['min_x'] = min_x
@@ -177,6 +177,7 @@ if __name__ == "__main__":
                         type=str, help='Output folder', default='./output/')
     parser.add_argument('--instance_label', dest='instance_label',
                         type=str, help='Instance label', default='instance_nr')
+    parser.add_argument('--merge', action='store_true', help="Print information about the process")
     parser.add_argument('--verbose', action='store_true', help="Print information about the process")
     args = parser.parse_args()
 
@@ -187,7 +188,9 @@ if __name__ == "__main__":
         args.instance_label, 
         args.verbose)
     get_instances.process_folder()
-    # get_instances.merge_all_files()
+    if args.merge:
+        get_instances.merge_all_files()
+        get_instances.remove_all_files_in_output_folder_exept_merged()
 
 
  
