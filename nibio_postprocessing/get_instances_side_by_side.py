@@ -5,6 +5,8 @@ import os
 from unicodedata import name
 import laspy
 import numpy as np
+import pandas as pd
+import pickle
 
 
 class GetInstancesSideBySide():
@@ -41,8 +43,20 @@ class GetInstancesSideBySide():
         # process each file
 
         # create a new csv file using pandas
-        import pandas as pd
-        df = pd.DataFrame(columns=['file_name', 'instance_label', 'min_x', 'max_x', 'min_y', 'max_y', 'min_z', 'max_z', 'number_of_points'])
+        df = pd.DataFrame(columns=[
+            'file_name', 
+            'instance_label', 
+            'min_x', 
+            'max_x', 
+            'min_y', 
+            'max_y', 
+            'min_z', 
+            'max_z', 
+            'number_of_points'
+            ])
+        
+        # create a dictionary to store the points for each instance
+        low_ground_points_dict = {}
 
         for file in files:
 
@@ -66,6 +80,14 @@ class GetInstancesSideBySide():
                 max_y = np.max(points[:, 1])
                 max_z = np.max(points[:, 2])
 
+                # define the new coordinates of a size of the old one 
+                points_low_ground = np.zeros_like(points)
+                # get points to z dimension of 0.5 meter
+                points_low_ground[:, 2] = points[:, 2] - min_z
+                # get only the points which are lower than 0.1 meter
+                points_low_ground = points_low_ground[points_low_ground[:, 2] < 0.3]
+                # save the points to the 
+
                 # add parameters to the dataframe
                 df = df.append(
                     {
@@ -80,7 +102,9 @@ class GetInstancesSideBySide():
                     'number_of_points': len(points)
                     }, ignore_index=True)
 
-          
+                # add the points to the dictionary               
+                low_ground_points_dict[str(instance_label)] = points_low_ground
+
                 # zero the coordinates
                 points[:, 0] = points[:, 0] - min_x
                 points[:, 1] = points[:, 1] - min_y
@@ -100,6 +124,11 @@ class GetInstancesSideBySide():
                 las.write(os.path.join(self.output_folder, str(instance_label) + '.las'))
                 # write csv file
                 df.to_csv(self.stats_file, index=False)
+            
+            # save dictionary to pickle file
+            with open(os.path.join(self.output_folder, 'low_ground_points_dict.pickle'), 'wb') as handle:
+                pickle.dump(low_ground_points_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        
             if self.verbose:
                 # print the number of instances which were saved and done
                 print("Saved {} instances".format(len(instance_points)))
