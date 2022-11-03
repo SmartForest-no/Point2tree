@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 from sklearn.neighbors import KDTree
 
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class AttachLabelsToLasFile():
     def __init__(
@@ -12,7 +14,9 @@ class AttachLabelsToLasFile():
         target_las_file_path, 
         update_las_file_path,
         gt_label_name='gt_label',
-         target_label_name='target_label'
+        target_label_name='target_label',
+        verbose=False
+
          ):
 
         self.gt_las_file_path = gt_las_file_path
@@ -20,6 +24,9 @@ class AttachLabelsToLasFile():
         self.update_las_file_path = update_las_file_path
         self.gt_label_name = gt_label_name
         self.target_label_name = target_label_name
+
+        # sample size
+        self.sample_size = 0
      
 
     def attach_labels(self):
@@ -82,7 +89,8 @@ class AttachLabelsToLasFile():
             new_las[item] = target_las[item][:sample_size]
 
         new_las[self.target_label_name] = target_labels.T[0]
-
+        
+        self.sample_size = sample_size
         # write the new las file
         new_las.write(self.update_las_file_path)
 
@@ -92,9 +100,27 @@ class AttachLabelsToLasFile():
         target_las_file_path,
         update_las_file_path,
         gt_label_name='gt_label',
-        target_label_name='target_label'
+        target_label_name='target_label',
+        verbose=False
         ):
         self.attach_labels()
+        if verbose:
+            # write a report using logging
+            logging.info('gt_las_file_path: {}'.format(self.gt_las_file_path))
+            logging.info('target_las_file_path: {}'.format(self.target_las_file_path))
+            logging.info('update_las_file_path: {}'.format(self.update_las_file_path))
+            logging.info('gt_label_name: {}'.format(self.gt_label_name))
+            logging.info('target_label_name: {}'.format(self.target_label_name))
+
+            # print the size of the las files
+            gt_las = laspy.read(self.gt_las_file_path)
+            target_las = laspy.read(self.target_las_file_path)
+            gt_las_size = gt_las.x.shape[0]
+            target_las_size = target_las.x.shape[0]
+            logging.info('gt_las_size: {}'.format(gt_las_size))
+            logging.info('target_las_size: {}'.format(target_las_size))
+            logging.info('sample_size: {}, which is the size of a smaller file'.format(self.sample_size))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Attach labels to las file')
@@ -103,6 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--update_las_file_path', type=str, required=True)
     parser.add_argument('--gt_label_name', type=str, default='gt_label')
     parser.add_argument('--target_label_name', type=str, default='target_label')
+    parser.add_argument('--verbose', action='store_true', help="Print information about the process")
     args = parser.parse_args()
 
     # create an instance of AttachLabelsToLasFile class
@@ -111,7 +138,9 @@ if __name__ == '__main__':
         target_las_file_path=args.target_las_file_path,
         update_las_file_path=args.update_las_file_path,
         gt_label_name=args.gt_label_name,
-        target_label_name=args.target_label_name
+        target_label_name=args.target_label_name,
+        verbose=args.verbose
+
         )
 
     # call main function
@@ -120,7 +149,8 @@ if __name__ == '__main__':
         target_las_file_path=args.target_las_file_path,
         update_las_file_path=args.update_las_file_path,
         gt_label_name=args.gt_label_name,
-        target_label_name=args.target_label_name
+        target_label_name=args.target_label_name,
+        verbose=args.verbose
         )
 
 
