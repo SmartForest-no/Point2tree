@@ -1,160 +1,266 @@
 
-import glob
+
 import argparse
-import os
-import joblib
 import laspy
 import logging
-
 import numpy as np
-
+import pandas as pd
+from sklearn.neighbors import KDTree
 
 logging.basicConfig(level=logging.INFO)
 
 class InstanceSegmentationMetrics():
-    def __init__(self, gt_folder, pred_folder):
-        self.gt_folder = gt_folder
-        self.pred_folder = pred_folder
+    def __init__(self, input_file_path, instance_segmented_file_path, verbose) -> None:
+        self.input_file_path = input_file_path
+        self.instance_segmented_file_path = instance_segmented_file_path
+        self.verbose = verbose
+        # read and prepare input las file and instance segmented las file
+        self.input_las = laspy.read(self.input_file_path)
+        self.instance_segmented_las = laspy.read(self.instance_segmented_file_path)
+        # get labels from input las file
+        self.X_labels = self.input_las.treeID.astype(int) #TODO: generalize this to other labels
+        # get labels from instance segmented las file
+        self.Y_labels = self.instance_segmented_las.instance_nr.astype(int) #TODO: generalize this to other labels
+        self.dict_Y = self.do_knn_mapping()
 
-    def get_metrics_for_single_point_cloud(self, las_gt, las_pred):
-        # read las files
-        las_gt = laspy.read(las_gt)
-        las_pred = laspy.read(las_pred)
 
-        # get different classes from gt and pred
-        gt_classes = np.unique(las_gt.treeID)
-        pred_classes = np.unique(las_pred.instance_nr)
+    def do_knn_mapping(self):
+        # get vector size
+        vec_size = self.Y_labels.shape[0]  #TODO: remove vector size in the future
+        X = self.input_las.xyz[:vec_size]
+        Y = self.instance_segmented_las.xyz[:vec_size]
+        X_labels = self.X_labels[:vec_size]
+        Y_labels = self.Y_labels[:vec_size]
 
-        # put x, y, z, for different classes in a dictionary
-        gt_dict = {}
-        pred_dict = {}
-        for gt_class in gt_classes:
-            gt_dict[gt_class] = np.vstack((las_gt.x[las_gt.treeID == gt_class], las_gt.y[las_gt.treeID == gt_class], las_gt.z[las_gt.treeID == gt_class])).T
-        for pred_class in pred_classes:
-            pred_dict[pred_class] = np.vstack((las_pred.x[las_pred.instance_nr == pred_class], las_pred.y[las_pred.instance_nr == pred_class], las_pred.z[las_pred.instance_nr == pred_class])).T
+        # create a KDTree for X
+        tree = KDTree(X, leaf_size=50, metric='euclidean')       
+        # query the tree for Y     
+        ind = tree.query(Y, k=1, return_distance=False)   
 
-        # get the number of points in gt and pred per class and put it in a dictionary
-        gt_dict_points = {}
-        pred_dict_points = {}
-        for gt_class in gt_classes:
-            gt_dict_points[gt_class] = gt_dict[gt_class].shape[0]
-        for pred_class in pred_classes:
-            pred_dict_points[pred_class] = pred_dict[pred_class].shape[0]
+        # get labels for ind
+        ind_labels_Y = X_labels[ind]
+        # reshape to 1D
+        ind_labels_Y = ind_labels_Y.reshape(-1) # labels from X matched to Y
+
+        # create a dictionary which contains Y, Y_labels and ind_labels_Y
+        dict_Y = {'Y': Y, 'Y_labels': Y_labels, 'ind_labels_Y': ind_labels_Y}
+
+        return dict_Y
+
+    def get_dominant_lables_sorted(self):
+        # get unique labels from Y_labels
+        Y_unique_labels = np.unique(self.Y_labels)
+    
+        dominant_labels = {}
+        for label in Y_unique_labels:
+            # get the indices of Y_labels == label
+            ind_Y_labels = np.where(self.Y_labels == label)[0]
+            # get the ind_labels_Y for these indices
+            ind_labels_Y = self.dict_Y['ind_labels_Y'][ind_Y_labels]
+            # get the unique ind_labels_Y
+            unique_ind_labels_Y = np.unique(ind_labels_Y)
+            # print the number of points for each unique ind_labels_Y
+            tmp_dict = {}
+            for unique_ind_label_Y in unique_ind_labels_Y:
+                # get the indices of ind_labels_Y == unique_ind_label_Y
+                ind_ind_labels_Y = np.where(ind_labels_Y == unique_ind_label_Y)[0]
+                # put the number of points to the tmp_dict
+                tmp_dict[str(unique_ind_label_Y)] = ind_ind_labels_Y.shape[0]
+        
+            # put the dominant label to the dominant_labels
+            dominant_labels[str(label)] = tmp_dict
+
+        # sort dominant_labels by the number of points
+        dominant_labels_sorted = {}
+        for key, value in dominant_labels.items():
+            dominant_labels_sorted[key] = {k: v for k, v in sorted(value.items(), key=lambda item: item[1], reverse=True)}
+
+        # iterate over the dominant_labels_sorted and sort it based on the first value of sub-dictionary
+        dominant_labels_sorted = {
+            k: v for k, v in sorted(dominant_labels_sorted.items(), key=lambda item: list(item[1].values())[0], reverse=True)}
+
+        return dominant_labels_sorted
+
+    def extract_from_sub_dict(self, target_dict, label):
+        new_dict = {}
+
+        for key_outer, value_outer in target_dict.items():
+            tmp_dict = {}
+            for item_inner in value_outer.keys():
+                if item_inner == label:
+                    tmp_dict[item_inner] = value_outer[item_inner]
+
+            new_dict[key_outer] = (tmp_dict)
+        return new_dict
+
+
+    # define a function that finds class in input_file with the most points
+    def find_dominant_classes_in_gt(self, input_file):
+        # get the unique labels
+        unique_labels = np.unique(input_file.treeID)
+        # create a dictionary
+        tmp_dict = {}
+        for label in unique_labels:
+            # get the indices of input_file.treeID == label
+            ind_label = np.where(input_file.treeID == label)[0]
+            # put the number of points to the tmp_dict
+            tmp_dict[str(label)] = ind_label.shape[0]
+        # sort tmp_dict by the number of points
+        tmp_dict_sorted = {k: v for k, v in sorted(tmp_dict.items(), key=lambda item: item[1], reverse=True)}
+        return tmp_dict_sorted.keys()
+
+    def get_the_dominant_label(self, dominant_labels_sorted):
+        dominant_label_key = list(dominant_labels_sorted.keys())[0]
+        dominant_label_value = list(dominant_labels_sorted.values())[0]
+        dominant_label = list(dominant_label_value.keys())[0]
+
+        # get dominant_label_key and dominant_label for which dominant_label_value.values() has the highest value
+        for key, value in dominant_labels_sorted.items():
+            for item in value.keys():
+                if value[item] > dominant_label_value[dominant_label]:
+                    dominant_label_key = key
+                    dominant_label = item
+                    dominant_label_value = value
+
+        return dominant_label_key, dominant_label
+
+
+    def remove_dominant_label(self, dominant_labels_sorted, dominant_label_key, dominant_label):
+        # remove the dominant_label_key from dominant_labels_sorted
+        dominant_labels_sorted.pop(dominant_label_key)
+        # remove the dominant_label from the sub-dictionary of dominant_labels_sorted
+        for key, value in dominant_labels_sorted.items():
+            if dominant_label in value:
+                value.pop(dominant_label)
+
+        return dominant_labels_sorted
+
+
+    def iterate_over_pc(self):
+
+        label_mapping_dict = {}
+
+        dominant_labels_sorted = self.get_dominant_lables_sorted()
+        gt_classes_to_iterate = self. find_dominant_classes_in_gt(self.input_las)
+
+        for gt_class in gt_classes_to_iterate:
+            if len(dominant_labels_sorted) == 1:
+                dominant_label_key, dominant_label = self.get_the_dominant_label(dominant_labels_sorted)
+                label_mapping_dict[dominant_label_key] = dominant_label
+                break
+
+            dominant_label_key, dominant_label = self.get_the_dominant_label(
+                self.extract_from_sub_dict(dominant_labels_sorted, gt_class))
+        
+            self.remove_dominant_label(dominant_labels_sorted, dominant_label_key, dominant_label)
             
-        # compute overlap for each class
-        overlap = {}
-        for gt_class in gt_dict:
-            for pred_class in pred_dict:
-                overlap[(gt_class, pred_class)] = self.get_overlap(gt_dict[gt_class], pred_dict[pred_class])
-
-        # get number of overlapping points per class
-        overlap_points = {}
-        for gt_class in gt_dict:
-            for pred_class in pred_dict:
-                overlap_points[(gt_class, pred_class)] = np.sum(overlap[(gt_class, pred_class)])
-
-        # sort the overlap points in descending order
-        overlap_points = {k: v for k, v in sorted(overlap_points.items(), key=lambda item: item[1], reverse=True)}
-
-        # sort out overlaps by the number of points in gt and pred
-        sorted_overlap = sorted(overlap.items(), key=lambda x: x[1], reverse=True)
-        sorted_overlap_points = sorted(overlap_points.items(), key=lambda x: x[1], reverse=True)
-
-     
-        # # find overlap between gt 0 and 0 pred classes using subsampling and voxel size 0.5
-        # logging.info('Overlap between gt 0 and pred 0 using subsampling and voxel size 0.5: {}'.format(self.get_overlap(gt_dict[0], pred_dict[0], subsample=True, voxel_size=0.5)))
-
-        # # find overlap between gt 0 and 0 pred classes using subsampling and voxel size 0.05
-        # logging.info('Overlap between gt 0 and pred 0 using subsampling and voxel size 0.05: {}'.format(self.get_overlap(gt_dict[0], pred_dict[0], subsample=True, voxel_size=0.05)))
-
-        # # find overlap between gt 0 and 0 pred classes without subsampling
-        # logging.info('Overlap between gt 0 and pred 0 without subsampling: {}'.format(self.get_overlap(gt_dict[0], pred_dict[0], subsample=False)))
-
-        # find overlap between gt 0 and and other pred classes using subsampling and voxel size 0.5
-        for i in range(1, len(pred_dict)):
-            logging.info('Overlap between gt 0 and pred {} using subsampling and voxel size 0.5: {}'.format(i, self.get_overlap(gt_dict[0], pred_dict[i], subsample=True, voxel_size=0.5)))
-
-        # find overlap between gt 9 and and other pred classes using subsampling and voxel size 0.5
-        for i in range(1, len(pred_dict)):
-            logging.info('Overlap between gt 9 and pred {} using subsampling and voxel size 0.5: {}'.format(i, self.get_overlap(gt_dict[9], pred_dict[i], subsample=True, voxel_size=0.1)))
-       
-
-        # print sorted overlap for first 10 classes
-        # logging.info('Sorted overlap for classes: {}'.format(sorted_overlap))
-
-        # # print best match for classes along with overlap
-        # logging.info('Best match for classes: {}'.format(best_match))
-
-    def get_overlap(self, gt, pred, subsample=False, voxel_size=0.1):
-        # compute overlap between gt and pred
-
-        # if subsample is True, subsample the point cloud
-        if subsample:
-            gt = self.subsample(gt, voxel_size)
-            pred = self.subsample(pred, voxel_size)
-
-        # get the number of points in gt and pred
-        overlap = np.intersect1d(gt, pred).shape[0]
-        # overlap = np.intersect1d(gt, pred).shape[0]
-
-        # overlap = np.sum(np.all(gt[:, None] == pred, axis=-1), axis=0)
-        return overlap
-
-    def subsample(self, tensor_x_y_z, voxel_size=0.1):
-        logging.info('Subsampling...')
-        non_empty_voxel_keys, inverse, nb_pts_per_voxel = \
-            np.unique(((tensor_x_y_z - np.min(tensor_x_y_z, axis=0)) // voxel_size).astype(int), axis=0, return_inverse=True, return_counts=True)
-        idx_pts_vox_sorted=np.argsort(inverse)
-        voxel_grid={}
-        grid_barycenter,grid_candidate_center=[],[]
-
-        def grid_subsampling(non_empty_voxel_keys):
-            last_seen=0
-            for idx,vox in enumerate(non_empty_voxel_keys):
-                voxel_grid[tuple(vox)]=tensor_x_y_z[idx_pts_vox_sorted[last_seen:last_seen+nb_pts_per_voxel[idx]]]
-                grid_barycenter.append(np.mean(voxel_grid[tuple(vox)],axis=0))
-                grid_candidate_center.append(voxel_grid[tuple(vox)][np.linalg.norm(voxel_grid[tuple(vox)]-np.mean(voxel_grid[tuple(vox)],axis=0),axis=1).argmin()])
-                last_seen+=nb_pts_per_voxel[idx]
-
-            return grid_candidate_center
-
-        # use joblib to parallelize the computation of the for loop
-        grid_candidate_center = joblib.Parallel(n_jobs=12)(joblib.delayed(grid_subsampling)(non_empty_voxel_keys) for i in range(12))
-
-        # merge the results
-        grid_candidate_center = np.concatenate(grid_candidate_center, axis=0)
-
-        grid_candidate_center = np.array(grid_candidate_center)
-        new_points = grid_candidate_center.transpose()
-
-        return new_points
+            label_mapping_dict[dominant_label_key] = dominant_label
+            
+        # change keys and values to int
+        label_mapping_dict = {int(k): int(v) for k, v in label_mapping_dict.items()}
         
+        return label_mapping_dict
 
-    def get_metrics_for_all_point_clouds(self):
-        # get all las files in gt and pred folders using glob
-        las_gt = glob.glob(os.path.join(self.gt_folder, '*.las'))
-        las_pred = glob.glob(os.path.join(self.pred_folder, '*.las'))
+    def compute_metrics(self):
+        # get the label_mapping_dict
+        label_mapping_dict = self.iterate_over_pc()
+        Y_unique_labels = np.unique(self.Y_labels)
+        # map the labels
+        metric_dict = {}
 
-        # if the number of files in gt and pred are not the same, raise an exception
-        if len(las_gt) != len(las_pred):
-            raise Exception('Number of files in gt and pred folders are not the same.')
-        
-        # iterate over all files in gt and pred folders
-        for i in range(len(las_gt)):
-            self.get_metrics_for_single_point_cloud(las_gt[i], las_pred[i])
+        for label in Y_unique_labels:
+            # get the indices of Y_labels == label
+            ind_Y_labels_label = np.where(self.Y_labels == label)[0]
+            # get the ind_labels_Y for these indices
+            ind_labels_Y = self.dict_Y['ind_labels_Y'][ind_Y_labels_label]
+            # get the dominant label for this label
+            dominant_label = label_mapping_dict[label]
+            # get the indices of ind_labels_Y == dominant_label
+            ind_dominant_label = np.where(ind_labels_Y == dominant_label)[0]
+            # true positive is the number of points for dominant_label
+            true_positive = ind_dominant_label.shape[0]
+            
+            # false positive is the number of all the points of this dominant_label label minus the true positive
+            false_positive = np.where(self.dict_Y['ind_labels_Y'] == dominant_label)[0].shape[0] - true_positive
+            # false negative is the number of all the points in Y_labels minus the number of points of true_positive
+            false_negative = np.where(ind_labels_Y != dominant_label)[0].shape[0] 
+            # true negative is the number of all the points minus the number of points of true_positive and false_positive
+            true_negative = self.dict_Y['ind_labels_Y'].shape[0] - false_negative - true_positive - false_positive
 
+            # sum all the true_positive, false_positive, false_negative, true_negative
+            sum_all = true_positive + false_positive + false_negative + true_negative
+
+            # get precision
+            precision = true_positive / (true_positive + false_positive)
+            # get recall
+            recall = true_positive / (true_positive + false_negative)
+            # get f1 score
+            f1_score = 2 * (precision * recall) / (precision + recall)
+
+            # get accuracy
+            accuracy = (true_positive + true_negative) / sum_all
+
+            # get IoU
+            IoU = true_positive / (true_positive + false_positive + false_negative)
+
+            # my metric
+            my_metric = (true_positive) / (ind_Y_labels_label.shape[0])
+
+            # create tmp dict
+            tmp_dict = {
+            'dominant_label': dominant_label,
+            'sum_all': sum_all,
+            'true_positive': true_positive, 
+            'false_positive': false_positive, 
+            'false_negative': false_negative, 
+            'true_negative': true_negative,
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1_score,
+            'accuracy': accuracy,
+            'IoU': IoU,
+            'my_metric': my_metric
+            }
+            metric_dict[str(label)] = tmp_dict
+
+        return metric_dict
+
+    def print_metrics(self, metric_dict):
+        for key, value in metric_dict.items():
+            print(f'Label: {key}')
+            for key2, value2 in value.items():
+                print(f'{key2}: {value2}')
+            print('')
+
+    def save_to_csv(self, metric_dict):
+        df = pd.DataFrame(metric_dict).T
+        df.to_csv('metrics_instance_segmentation.csv')
+
+
+    def main(self):
+        metric_dict = self.compute_metrics()
+        self.print_metrics(metric_dict)
+        self.save_to_csv(metric_dict)
+        return metric_dict
+
+
+# main
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--gt_folder', type=str, required=True, help='Path to the folder containing ground truth point clouds.')
-    # parser.add_argument('--pred_folder', type=str, required=True, help='Path to the folder containing predicted point clouds.')
-    # args = parser.parse_args()
+    # do argparse input_file_path, instance_segmented_file_path, verbose
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_file_path', type=str, required=True)
+    parser.add_argument('--instance_segmented_file_path', type=str, required=True)
+    parser.add_argument('--verbose', action='store_true', help="Print information about the process")
 
-    # # create an instance of InstanceSegmentationMetrics class
-    # instance_segmentation_metrics = InstanceSegmentationMetrics(args.gt_folder, args.pred_folder)
+    args = parser.parse_args()
 
-    input_file_path = '/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/results/input_data'
-    instance_segmented_file_path = '/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/results/instance_segmented_point_clouds_with_ground'
-
-    instance_segmentation_metrics = InstanceSegmentationMetrics(input_file_path, instance_segmented_file_path)
-
-    instance_segmentation_metrics.get_metrics_for_all_point_clouds()
+    # create instance of the class InstanceSegmentationMetrics
+    instance_segmentation_metrics = InstanceSegmentationMetrics(
+        args.input_file_path, 
+        args.instance_segmented_file_path, 
+        args.verbose
+        )
+    
+    # compute metrics
+    metric_dict = instance_segmentation_metrics.main()
+   
