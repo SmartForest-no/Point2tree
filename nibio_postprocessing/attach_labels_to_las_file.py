@@ -25,9 +25,6 @@ class AttachLabelsToLasFile():
         self.gt_label_name = gt_label_name
         self.target_label_name = target_label_name
         self.verbose = verbose
-
-        # sample size
-        self.sample_size = 0
      
 
     def attach_labels(self):
@@ -40,15 +37,11 @@ class AttachLabelsToLasFile():
         target_las_size = target_las.x.shape[0]
 
         # pick the smaller las file size as the number of points to sample
-        if gt_las_size < target_las_size:
-            sample_size = gt_las_size
-        else:
-            sample_size = target_las_size
 
         # read x, y, z and gt_label from gt las file to variables and set a size of sample_size
-        gt = gt_las.xyz[:sample_size]
-        target = target_las.xyz[:sample_size]
-        gt_label = gt_las[self.gt_label_name][:sample_size]
+        gt = gt_las.xyz
+        target = target_las.xyz
+        gt_label = gt_las[self.gt_label_name]
 
         # create a tree from target las file
         tree = KDTree(gt, leaf_size=50, metric='euclidean')
@@ -79,19 +72,18 @@ class AttachLabelsToLasFile():
         new_las = laspy.LasData(new_header)
 
         # copy x, y, z, gt_label and target_label from target las file to the new las file
-        new_las.x = target_las.x[:sample_size]
-        new_las.y = target_las.y[:sample_size]
-        new_las.z = target_las.z[:sample_size]
+        new_las.x = target_las.x
+        new_las.y = target_las.y
+        new_las.z = target_las.z
 
         # copy contents of extra dimensions from target las file to the new las file
         # target_extra_dimensions.append(self.target_label_name)
 
         for item in target_extra_dimensions:
-            new_las[item] = target_las[item][:sample_size]
+            new_las[item] = target_las[item]
 
         new_las[self.target_label_name] = target_labels.T[0]
         
-        self.sample_size = sample_size
         # write the new las file
         new_las.write(self.update_las_file_path)
 
@@ -113,7 +105,6 @@ class AttachLabelsToLasFile():
             target_las_size = target_las.x.shape[0]
             logging.info('gt_las_size: {}'.format(gt_las_size))
             logging.info('target_las_size: {}'.format(target_las_size))
-            logging.info('sample_size: {}, which is the size of a smaller file'.format(self.sample_size))
 
 
 if __name__ == '__main__':
