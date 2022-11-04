@@ -24,6 +24,7 @@ class AttachLabelsToLasFile():
         self.update_las_file_path = update_las_file_path
         self.gt_label_name = gt_label_name
         self.target_label_name = target_label_name
+        self.verbose = verbose
 
         # sample size
         self.sample_size = 0
@@ -94,17 +95,10 @@ class AttachLabelsToLasFile():
         # write the new las file
         new_las.write(self.update_las_file_path)
 
-    def main(
-        self,
-        gt_las_file_path,
-        target_las_file_path,
-        update_las_file_path,
-        gt_label_name='gt_label',
-        target_label_name='target_label',
-        verbose=False
-        ):
-        self.attach_labels()
-        if verbose:
+    def main(self):
+        self.attach_labels(
+        )
+        if self.verbose:
             # write a report using logging
             logging.info('gt_las_file_path: {}'.format(self.gt_las_file_path))
             logging.info('target_las_file_path: {}'.format(self.target_las_file_path))
@@ -144,14 +138,7 @@ if __name__ == '__main__':
         )
 
     # call main function
-    attach_labels_to_las_file.main(
-        gt_las_file_path=args.gt_las_file_path,
-        target_las_file_path=args.target_las_file_path,
-        update_las_file_path=args.update_las_file_path,
-        gt_label_name=args.gt_label_name,
-        target_label_name=args.target_label_name,
-        verbose=args.verbose
-        )
+    attach_labels_to_las_file.main()
 
 
 
