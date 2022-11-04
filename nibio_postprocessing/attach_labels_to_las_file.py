@@ -16,7 +16,6 @@ class AttachLabelsToLasFile():
         gt_label_name='gt_label',
         target_label_name='target_label',
         verbose=False
-
          ):
 
         self.gt_las_file_path = gt_las_file_path
@@ -31,12 +30,6 @@ class AttachLabelsToLasFile():
         # read las file
         gt_las = laspy.read(self.gt_las_file_path)
         target_las = laspy.read(self.target_las_file_path)
-
-        # get size of both las files
-        gt_las_size = gt_las.x.shape[0]
-        target_las_size = target_las.x.shape[0]
-
-        # pick the smaller las file size as the number of points to sample
 
         # read x, y, z and gt_label from gt las file to variables and set a size of sample_size
         gt = gt_las.xyz
@@ -77,8 +70,6 @@ class AttachLabelsToLasFile():
         new_las.z = target_las.z
 
         # copy contents of extra dimensions from target las file to the new las file
-        # target_extra_dimensions.append(self.target_label_name)
-
         for item in target_extra_dimensions:
             new_las[item] = target_las[item]
 
