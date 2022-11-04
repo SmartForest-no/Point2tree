@@ -1,6 +1,7 @@
 
 
 import argparse
+import os
 import laspy
 import logging
 import numpy as np
@@ -171,19 +172,25 @@ class InstanceSegmentationMetrics():
         for label in Y_unique_labels:
             # get the indices of Y_labels == label
             ind_Y_labels_label = np.where(self.Y_labels == label)[0]
+
             # get the ind_labels_Y for these indices
             ind_labels_Y = self.dict_Y['ind_labels_Y'][ind_Y_labels_label]
+
             # get the dominant label for this label
             dominant_label = label_mapping_dict[label]
+
             # get the indices of ind_labels_Y == dominant_label
             ind_dominant_label = np.where(ind_labels_Y == dominant_label)[0]
+
             # true positive is the number of points for dominant_label
             true_positive = ind_dominant_label.shape[0]
-            
+
             # false positive is the number of all the points of this dominant_label label minus the true positive
             false_positive = np.where(self.dict_Y['ind_labels_Y'] == dominant_label)[0].shape[0] - true_positive
+
             # false negative is the number of all the points in Y_labels minus the number of points of true_positive
             false_negative = np.where(ind_labels_Y != dominant_label)[0].shape[0] 
+
             # true negative is the number of all the points minus the number of points of true_positive and false_positive
             true_negative = self.dict_Y['ind_labels_Y'].shape[0] - false_negative - true_positive - false_positive
 
@@ -196,15 +203,8 @@ class InstanceSegmentationMetrics():
             recall = true_positive / (true_positive + false_negative)
             # get f1 score
             f1_score = 2 * (precision * recall) / (precision + recall)
-
-            # get accuracy
-            accuracy = (true_positive + true_negative) / sum_all
-
             # get IoU
             IoU = true_positive / (true_positive + false_positive + false_negative)
-
-            # my metric
-            my_metric = (true_positive) / (ind_Y_labels_label.shape[0])
 
             # create tmp dict
             tmp_dict = {
@@ -217,9 +217,7 @@ class InstanceSegmentationMetrics():
             'precision': precision,
             'recall': recall,
             'f1_score': f1_score,
-            'accuracy': accuracy,
             'IoU': IoU,
-            'my_metric': my_metric
             }
             metric_dict[str(label)] = tmp_dict
 
@@ -239,8 +237,13 @@ class InstanceSegmentationMetrics():
 
     def main(self):
         metric_dict = self.compute_metrics()
-        self.print_metrics(metric_dict)
+
+        if self.verbose:
+            self.print_metrics(metric_dict)
+        
         self.save_to_csv(metric_dict)
+        print(f'CSV file saved to: {os.path.join(os.getcwd(), "metrics_instance_segmentation.csv")}')
+
         return metric_dict
 
 
