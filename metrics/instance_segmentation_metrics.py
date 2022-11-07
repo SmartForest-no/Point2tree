@@ -33,12 +33,10 @@ class InstanceSegmentationMetrics:
         self.dict_Y = self.do_knn_mapping()
 
     def do_knn_mapping(self):
-        # get vector size
-        vec_size = self.Y_labels.shape[0]  #TODO: remove vector size in the future
-        X = self.input_las.xyz[:vec_size]
-        Y = self.instance_segmented_las.xyz[:vec_size]
-        X_labels = self.X_labels[:vec_size]
-        Y_labels = self.Y_labels[:vec_size]
+        X = self.input_las.xyz
+        Y = self.instance_segmented_las.xyz
+        X_labels = self.X_labels
+        Y_labels = self.Y_labels
 
         # create a KDTree for X
         tree = KDTree(X, leaf_size=50, metric='euclidean')       

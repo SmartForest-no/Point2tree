@@ -42,7 +42,6 @@ class InstanceSegmentationMetricsInFolder():
             if gt_las_file_core_name == target_las_file_core_name:
                 # make a tuple of the matched paths
                 matched_paths.append((gt_las_file_path, target_las_file_path)) 
-            print('matched_paths', matched_paths)
 
         # check if all are matched if not raise an exception
         if len(matched_paths) != len(gt_las_file_paths):
