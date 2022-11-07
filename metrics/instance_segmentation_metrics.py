@@ -11,9 +11,17 @@ from sklearn.neighbors import KDTree
 logging.basicConfig(level=logging.INFO)
 
 class InstanceSegmentationMetrics():
-    def __init__(self, input_file_path, instance_segmented_file_path, verbose) -> None:
+    def __init__(
+        self, 
+        input_file_path, 
+        instance_segmented_file_path, 
+        save_to_csv=False,
+        verbose=False
+        ) -> None:
+
         self.input_file_path = input_file_path
         self.instance_segmented_file_path = instance_segmented_file_path
+        self.save_to_csv = save_to_csv
         self.verbose = verbose
         # read and prepare input las file and instance segmented las file
         self.input_las = laspy.read(self.input_file_path)
@@ -23,7 +31,6 @@ class InstanceSegmentationMetrics():
         # get labels from instance segmented las file
         self.Y_labels = self.instance_segmented_las.instance_nr.astype(int) #TODO: generalize this to other labels
         self.dict_Y = self.do_knn_mapping()
-
 
     def do_knn_mapping(self):
         # get vector size
@@ -230,7 +237,7 @@ class InstanceSegmentationMetrics():
                 print(f'{key2}: {value2}')
             print('')
 
-    def save_to_csv(self, metric_dict):
+    def save_to_csv_file(self, metric_dict):
         df = pd.DataFrame(metric_dict).T
         df.to_csv('metrics_instance_segmentation.csv')
 
@@ -241,8 +248,9 @@ class InstanceSegmentationMetrics():
         if self.verbose:
             self.print_metrics(metric_dict)
         
-        self.save_to_csv(metric_dict)
-        print(f'CSV file saved to: {os.path.join(os.getcwd(), "metrics_instance_segmentation.csv")}')
+        if self.save_to_csv:
+            self.save_to_csv_file(metric_dict)
+            print(f'CSV file saved to: {os.path.join(os.getcwd(), "metrics_instance_segmentation.csv")}')
 
         return metric_dict
 
@@ -253,6 +261,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_file_path', type=str, required=True)
     parser.add_argument('--instance_segmented_file_path', type=str, required=True)
+    parser.add_argument('--save_to_csv', action='store_true', help="Save the metrics to a csv file")
     parser.add_argument('--verbose', action='store_true', help="Print information about the process")
 
     args = parser.parse_args()
@@ -261,6 +270,7 @@ if __name__ == '__main__':
     instance_segmentation_metrics = InstanceSegmentationMetrics(
         args.input_file_path, 
         args.instance_segmented_file_path, 
+        args.save_to_csv,
         args.verbose
         )
     
