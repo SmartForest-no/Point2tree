@@ -10,7 +10,7 @@ from sklearn.neighbors import KDTree
 
 logging.basicConfig(level=logging.INFO)
 
-class InstanceSegmentationMetrics():
+class InstanceSegmentationMetrics:
     def __init__(
         self, 
         input_file_path, 
@@ -262,9 +262,7 @@ class InstanceSegmentationMetrics():
             print(f'f1_score_weighted: {f1_score_weighted}')
             for key, value in metric_dict.items():
                 print(f'Label: {key}, f1_score: {value["f1_score"]}, high_of_tree: {value["high_of_tree"]}')
-
-
-        
+       
         if self.save_to_csv:
             self.save_to_csv_file(metric_dict)
             print(f'CSV file saved to: {os.path.join(os.getcwd(), "metrics_instance_segmentation.csv")}')
@@ -278,8 +276,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_file_path', type=str, required=True)
     parser.add_argument('--instance_segmented_file_path', type=str, required=True)
-    parser.add_argument('--save_to_csv', action='store_true', help="Save the metrics to a csv file")
-    parser.add_argument('--verbose', action='store_true', help="Print information about the process")
+    parser.add_argument('--save_to_csv', action='store_true', help="Save the metrics to a csv file", default=False)
+    parser.add_argument('--verbose', action='store_true', help="Print information about the process", default=False)
 
     args = parser.parse_args()
 
