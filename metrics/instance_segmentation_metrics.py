@@ -213,9 +213,13 @@ class InstanceSegmentationMetrics():
             # get IoU
             IoU = true_positive / (true_positive + false_positive + false_negative)
 
+            # find hight of the tree in the ground truth
+            hight_of_tree = (self.input_las[self.input_las.treeID == dominant_label].z).max() - (self.input_las[self.input_las.treeID == dominant_label].z).min()
+
             # create tmp dict
             tmp_dict = {
             'dominant_label': dominant_label,
+            'high_of_tree': hight_of_tree,
             'sum_all': sum_all,
             'true_positive': true_positive, 
             'false_positive': false_positive, 
@@ -228,7 +232,16 @@ class InstanceSegmentationMetrics():
             }
             metric_dict[str(label)] = tmp_dict
 
-        return metric_dict
+        # compute a singel f1 score weighted by the tree hight
+        f1_score_weighted = 0
+        for key, value in metric_dict.items():
+            f1_score_weighted += value['f1_score'] * value['high_of_tree']
+
+        f1_score_weighted = f1_score_weighted / self.input_las.z.max()
+        f1_score_weighted = f1_score_weighted / len(Y_unique_labels)
+
+
+        return metric_dict, f1_score_weighted
 
     def print_metrics(self, metric_dict):
         for key, value in metric_dict.items():
@@ -243,16 +256,20 @@ class InstanceSegmentationMetrics():
 
 
     def main(self):
-        metric_dict = self.compute_metrics()
+        metric_dict, f1_score_weighted  = self.compute_metrics()
 
         if self.verbose:
-            self.print_metrics(metric_dict)
+            print(f'f1_score_weighted: {f1_score_weighted}')
+            for key, value in metric_dict.items():
+                print(f'Label: {key}, f1_score: {value["f1_score"]}, high_of_tree: {value["high_of_tree"]}')
+
+
         
         if self.save_to_csv:
             self.save_to_csv_file(metric_dict)
             print(f'CSV file saved to: {os.path.join(os.getcwd(), "metrics_instance_segmentation.csv")}')
 
-        return metric_dict
+        return metric_dict, f1_score_weighted
 
 
 # main
