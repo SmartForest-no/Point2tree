@@ -116,10 +116,22 @@ class InstanceSegmentationMetrics:
         return tmp_dict_sorted.keys()
 
     def get_the_dominant_label(self, dominant_labels_sorted):
+        # get the dominant label
+        
+        # iterate over the dominant_labels_sorted and sort it based on the first value of sub-dictionary 
+        # if sub-dictionary is empty, remove the key from the dictionary
+
+        for key, value in dominant_labels_sorted.copy().items():
+            if not value:
+                del dominant_labels_sorted[key]
+
+        dominant_labels_sorted = {
+            k: v for k, v in sorted(dominant_labels_sorted.items(), key=lambda item: list(item[1].values())[0], reverse=True)}
+
         dominant_label_key = list(dominant_labels_sorted.keys())[0]
         dominant_label_value = list(dominant_labels_sorted.values())[0]
         dominant_label = list(dominant_label_value.keys())[0]
-
+       
         # get dominant_label_key and dominant_label for which dominant_label_value.values() has the highest value
         for key, value in dominant_labels_sorted.items():
             for item in value.keys():
