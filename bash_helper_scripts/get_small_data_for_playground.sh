@@ -9,8 +9,8 @@ mv $TARGET_FOLDER/small_file_pipeline_test.las $TARGET_FOLDER/first.las
 # make a copy of the file
 cp $TARGET_FOLDER/first.las $TARGET_FOLDER/second.las
 
-# # make a copy of the file
-# cp $TARGET_FOLDER/first.las $TARGET_FOLDER/third.las
+# make a copy of the file
+cp $TARGET_FOLDER/first.las $TARGET_FOLDER/third.las
 
-# # make a copy of the file
-# cp $TARGET_FOLDER/first.las $TARGET_FOLDER/fourth.las
+# make a copy of the file
+cp $TARGET_FOLDER/first.las $TARGET_FOLDER/fourth.las
