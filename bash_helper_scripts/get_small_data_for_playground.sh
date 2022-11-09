@@ -1,13 +1,16 @@
-SOURCE_FOLDER=/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground
-rm -rf $SOURCE_FOLDER/*
+TARGET_FOLDER=/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/maciek
+rm -rf $TARGET_FOLDER/*
 
-cp /home/nibio/mutable-outside-world/data/small_file_pipeline_test/small_file_pipeline_test.las \
-/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground
+cp /home/nibio/mutable-outside-world/data/small_file_pipeline_test/small_file_pipeline_test.las $TARGET_FOLDER
 
 # change name of the file to first.laz 
-mv /home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/small_file_pipeline_test.las \
-/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/first.las
+mv $TARGET_FOLDER/small_file_pipeline_test.las $TARGET_FOLDER/first.las
 
-# copy first.laz to second.laz
-cp /home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/first.las \
-/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/second.las
+# make a copy of the file
+cp $TARGET_FOLDER/first.las $TARGET_FOLDER/second.las
+
+# # make a copy of the file
+# cp $TARGET_FOLDER/first.las $TARGET_FOLDER/third.las
+
+# # make a copy of the file
+# cp $TARGET_FOLDER/first.las $TARGET_FOLDER/fourth.las

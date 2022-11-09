@@ -1,4 +1,5 @@
 import argparse
+from joblib import Parallel, delayed
 import pdal
 import os, glob
 import json
@@ -84,8 +85,7 @@ class Tiling:
         files = glob.glob(self.input_folder + "/*.ply") 
 
         # loop through all the files
-        for file in tqdm(files):
-            self.do_tiling_of_single_file(file)
+        Parallel(n_jobs=(os.cpu_count() - 2))(delayed(self.do_tiling_of_single_file)(file) for file in tqdm(files))
 
     def convert_single_file_from_las_to_ply(self, file):
         """

@@ -92,8 +92,6 @@ def main():
     metric = InstanceSegmentationMetricsInFolder(
         gt_las_folder_path = '/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/results/input_data',
         target_las_folder_path = '/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/results/instance_segmented_point_clouds_with_ground',
-        gt_label_name='treeID',
-        target_label_name='treeID',
         verbose=True
     ) 
 

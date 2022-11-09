@@ -7,14 +7,10 @@ class InstanceSegmentationMetricsInFolder():
         self,
         gt_las_folder_path,
         target_las_folder_path,
-        gt_label_name='gt_label', #TODO: implement the same as in the instance_segmentation_metrics.py
-        target_label_name='target_label', #TODO: implement the same as in the instance_segmentation_metrics.py
         verbose=False
     ):
         self.gt_las_folder_path = gt_las_folder_path
         self.target_las_folder_path = target_las_folder_path
-        self.gt_label_name = gt_label_name
-        self.target_label_name = target_label_name
         self.verbose = verbose
 
     def main(self):
@@ -80,8 +76,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--gt_las_folder_path', type=str, required=True)
     parser.add_argument('--target_las_folder_path', type=str, required=True)
-    parser.add_argument('--gt_label_name', type=str, default='gt_label')
-    parser.add_argument('--target_label_name', type=str, default='target_label')
     parser.add_argument('--verbose', action='store_true', help="Print information about the process")
     args = parser.parse_args()
 
@@ -89,8 +83,6 @@ if __name__ == '__main__':
     instance_segmentation_metrics_in_folder = InstanceSegmentationMetricsInFolder(
         args.gt_las_folder_path,
         args.target_las_folder_path,
-        gt_label_name=args.gt_label_name,
-        target_label_name=args.target_label_name,
         verbose=args.verbose
     )
 
