@@ -20,24 +20,25 @@ class RunCommand:
 
 # define the sweep configuration with the parameters to sweep
 sweep_configuration = {
-    'method': 'random',
+    'method': 'bayes',
     'name': 'sweep',
     'metric': {'goal': 'maximize', 'name': 'f1_score'},
     'parameters':
     {
         'N_TILES': {'values': [3]},
-        'SLICE_THICKNESS': {'values': [0.5]},
-        'FIND_STEMS_HEIGHT': {'values': [1.5]},
-        'FIND_STEMS_THICKNESS': {'values': [0.5]},
-        'GRAPH_MAXIMUM_CUMULATIVE_GAP': {'values': [3]},
-        'ADD_LEAVES_VOXEL_LENGTH': {'values': [0.5]},
-        'FIND_STEMS_MIN_POINTS': {'values': [50, 100, 150]}
+        'SLICE_THICKNESS': {'values': [0.25, 0.5, 0.75]},
+        'FIND_STEMS_HEIGHT': {'values': [0.5, 0.75, 1.0, 1.5, 2.0]},
+        'FIND_STEMS_THICKNESS': {'values': [0.25, 0.5, 0.75]},
+        'GRAPH_MAXIMUM_CUMULATIVE_GAP': {'values': [1, 2, 3, 4]},
+        'ADD_LEAVES_VOXEL_LENGTH': {'values': [0.25, 0.5, 0.75]},
+        'FIND_STEMS_MIN_POINTS': {'values': [10, 20, 30, 50, 100, 150, 200]}
     }
 }
 
 def main():
     # initialize the sweep
     run = wandb.init(project="sweep-train", entity="maciej-wielgosz-nibio")
+
     # get files for the sweep
     print("Getting files for the sweep")
     cmd = "/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/bash_helper_scripts/get_small_data_for_playground.sh"
@@ -108,4 +109,4 @@ def main():
 sweep_id = wandb.sweep(sweep=sweep_configuration, project="sweep-train", entity="maciej-wielgosz-nibio")
 
 # run the sweep
-wandb.agent(sweep_id, function=main, count=2)
+wandb.agent(sweep_id, function=main, count=1000)
