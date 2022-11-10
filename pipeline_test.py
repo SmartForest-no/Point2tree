@@ -41,7 +41,7 @@ def main():
 
     # get files for the sweep
     print("Getting files for the sweep")
-    cmd = "/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/bash_helper_scripts/get_small_data_for_playground.sh"
+    cmd = "/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/bash_helper_scripts/get_terrestial_sem_seg_validation.sh"
     subprocess.run([cmd], shell=True)
 
     # define the arguments for all the parameters from the sweep configuration
@@ -91,7 +91,8 @@ def main():
     print("Computing the metric")
     metric = InstanceSegmentationMetricsInFolder(
         gt_las_folder_path = '/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/results/input_data',
-        target_las_folder_path = '/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/results/instance_segmented_point_clouds_with_ground',
+        target_las_folder_path = '/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground/results/instance_segmented_point_clouds',
+        remove_ground=True,
         verbose=True
     ) 
 
@@ -101,7 +102,6 @@ def main():
     # log the metric
     print("Logging the metric")
     wandb.log({"f1_score": f1_score})
-
 
 # define the sweep
 sweep_id = wandb.sweep(sweep=sweep_configuration, project="sweep-train", entity="maciej-wielgosz-nibio")
