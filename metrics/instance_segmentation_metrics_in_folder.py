@@ -29,32 +29,34 @@ class InstanceSegmentationMetricsInFolder():
         if len(gt_las_file_paths) != len(target_las_file_paths):
             raise Exception('The number of las files in the gt_las_folder_path and target_las_folder_path are not the same')
 
-        # match the core name in the gt_las_file_path and target_las_file_path and make tuples of the matched paths
-        matched_paths = []
+        # iterate over the las files
         for gt_las_file_path, target_las_file_path in zip(gt_las_file_paths, target_las_file_paths):
 
             # read the las file check if las file is not empty
             gt_las_file = laspy.read(gt_las_file_path)
             if len(gt_las_file.points) == 0:
-                # remove the las file and the corresponding target_las_file_path
-                os.remove(gt_las_file_path)
-                os.remove(target_las_file_path)
+                # remove the las file and the corresponding target_las_file_path from the list of paths
+                gt_las_file_paths.remove(gt_las_file_path)
+                target_las_file_paths.remove(target_las_file_path)
                 if self.verbose:
-                    print('Removed empty las file: ' + gt_las_file_path)
+                    print('Removed empty las file from the list: ' + gt_las_file_path)
 
             # check if las file is not empty
             target_las_file = laspy.read(target_las_file_path)
             if len(target_las_file.points) == 0:
-                # remove the las file and the corresponding target_las_file_path
-                os.remove(gt_las_file_path)
-                os.remove(target_las_file_path)
+                # remove the las file and the corresponding target_las_file_path from the list of paths
+                gt_las_file_paths.remove(gt_las_file_path)
+                target_las_file_paths.remove(target_las_file_path)
                 if self.verbose:
-                    print('Removed empty las file: ' + target_las_file_path)
+                    print('Removed empty las file from the list: ' + target_las_file_path)
+
+        # match the core name in the gt_las_file_path and target_las_file_path and make tuples of the matched paths
+        matched_paths = []
+        for gt_las_file_path, target_las_file_path in zip(gt_las_file_paths, target_las_file_paths):
 
             # print what files are being matched and processed
             if self.verbose:
                 print('Matching: ' + gt_las_file_path + ' and ' + target_las_file_path)
-
 
             # get the core name of the gt_las_file_path
             gt_las_file_core_name = os.path.basename(gt_las_file_path).split('.')[0]
