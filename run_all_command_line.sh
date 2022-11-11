@@ -14,10 +14,13 @@ FIND_STEMS_THICKNESS=0.5
 GRAPH_MAXIMUM_CUMULATIVE_GAP=3
 ADD_LEAVES_VOXEL_LENGTH=0.5
 FIND_STEMS_MIN_POINTS=50
+GRAPH_EDGE_LENGTH=1.0
+ADD_LEAVES_EDGE_LENGTH=1.0
+
 ############################# end of parameters declaration ############################
 
 # extract tiling parameters as command line arguments with the same default values
-while getopts "d:n:s:h:t:g:l:m:" opt; do
+while getopts "d:n:s:h:t:g:l:m:o:p:" opt; do
   case $opt in
     d) data_folder="$OPTARG"
     ;;
@@ -35,6 +38,10 @@ while getopts "d:n:s:h:t:g:l:m:" opt; do
     ;;
     m) FIND_STEMS_MIN_POINTS="$OPTARG"
     ;;
+    o) GRAPH_EDGE_LENGTH="$OPTARG"
+    ;;
+    p) ADD_LEAVES_EDGE_LENGTH="$OPTARG"
+    ;;
     \?) echo "Invalid option -$OPTARG" >&2
     ;;
   esac
@@ -50,6 +57,8 @@ echo "t: FIND_STEMS_THICKNESS"
 echo "g: GRAPH_MAXIMUM_CUMULATIVE_GAP"
 echo "l: ADD_LEAVES_VOXEL_LENGTH"
 echo "m: FIND_STEMS_MIN_POINTS"
+echo "o: GRAPH_EDGE_LENGTH"
+echo "p: ADD_LEAVES_EDGE_LENGTH"
 
 echo " "
 # print values of the parameters 
@@ -62,6 +71,8 @@ echo "FIND_STEMS_THICKNESS: $FIND_STEMS_THICKNESS"
 echo "GRAPH_MAXIMUM_CUMULATIVE_GAP: $GRAPH_MAXIMUM_CUMULATIVE_GAP"
 echo "ADD_LEAVES_VOXEL_LENGTH: $ADD_LEAVES_VOXEL_LENGTH"
 echo "FIND_STEMS_MIN_POINTS: $FIND_STEMS_MIN_POINTS"
+echo "GRAPH_EDGE_LENGTH: $GRAPH_EDGE_LENGTH"
+echo "ADD_LEAVES_EDGE_LENGTH: $ADD_LEAVES_EDGE_LENGTH"
 
 # exit 0
 
@@ -240,7 +251,9 @@ for segmented_point_cloud in $data_folder/segmented_point_clouds/*.segmented.ply
         --graph-maximum-cumulative-gap $GRAPH_MAXIMUM_CUMULATIVE_GAP \
         --save-diameter-class \
         --ignore-missing-tiles \
-        --find-stems-min-points $FIND_STEMS_MIN_POINTS
+        --find-stems-min-points $FIND_STEMS_MIN_POINTS \
+        --graph-edge-length $GRAPH_EDGE_LENGTH \
+        --add-leaves-edge-length $ADD_LEAVES_EDGE_LENGTH 
     done
 done
 
