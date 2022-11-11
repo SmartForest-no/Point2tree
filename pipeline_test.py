@@ -1,8 +1,9 @@
 import subprocess
-import wandb
 
+import wandb
 # local imports
-from metrics.instance_segmentation_metrics_in_folder import InstanceSegmentationMetricsInFolder
+from metrics.instance_segmentation_metrics_in_folder import \
+    InstanceSegmentationMetricsInFolder
 
 # wandb.login()
 
@@ -20,21 +21,20 @@ class RunCommand:
 
 # define the sweep configuration with the parameters to sweep
 sweep_configuration = {
-    'method': 'bayes',
+    'method': 'random',
     'name': 'sweep',
     'metric': {'goal': 'maximize', 'name': 'f1_score'},
     'parameters':
     {
         'N_TILES': {'values': [3]},
-        'SLICE_THICKNESS': {'values': [0.25, 0.5, 0.75]},
-        'FIND_STEMS_HEIGHT': {'values': [0.5, 0.75, 1.0, 1.5, 2.0]},
-        'FIND_STEMS_THICKNESS': {'values': [0.25, 0.5, 0.75]}, # 0.1 - 1.0
-        'GRAPH_MAXIMUM_CUMULATIVE_GAP': {'values': [5, 10, 15, 20]}, # 5 - 20
-        'ADD_LEAVES_VOXEL_LENGTH': {'values': [0.1, 0.25, 0.5, 0.75]}, # 0.1 - 0.5
-        'FIND_STEMS_MIN_POINTS': {'values': [10, 20, 30, 50, 100, 150, 200]}, # 50 - 500
-        # new parameters
-        'GRAPH_EDGE_LENGTH' : {'values': [0.5, 1.0, 1.5, 2.0]},
-        'ADD_LEAVES_EDGE_LENGTH': {'values': [0.2, 0.5, 0.75, 1.0, 1.5]}
+        'SLICE_THICKNESS': {'max': 0.75, 'min': 0.25}, 
+        'FIND_STEMS_HEIGHT': {'max': 2.0, 'min': 0.5},
+        'FIND_STEMS_THICKNESS': {'max': 1.0, 'min': 0.1},
+        'GRAPH_MAXIMUM_CUMULATIVE_GAP': {'max': 20, 'min': 5},
+        'ADD_LEAVES_VOXEL_LENGTH': {'max': 0.5, 'min': 0.1},
+        'FIND_STEMS_MIN_POINTS': {'max': 500, 'min': 50},
+        'GRAPH_EDGE_LENGTH' : {'max': 2.0, 'min': 0.1},
+        'ADD_LEAVES_EDGE_LENGTH': {'max': 1.5, 'min': 0.2}
     }
 }
 
@@ -44,7 +44,7 @@ def main():
 
     # get files for the sweep
     print("Getting files for the sweep")
-    cmd = "/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/bash_helper_scripts/get_terrestial_sem_seg_validation.sh"
+    cmd = "/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/bash_helper_scripts/get_small_data_for_playground.sh"
     subprocess.run([cmd], shell=True)
 
     # define the arguments for all the parameters from the sweep configuration
@@ -56,6 +56,8 @@ def main():
     graph_maximum_cumulative_gap = wandb.config.GRAPH_MAXIMUM_CUMULATIVE_GAP
     add_leaves_voxel_length = wandb.config.ADD_LEAVES_VOXEL_LENGTH
     find_stems_min_points = wandb.config.FIND_STEMS_MIN_POINTS
+    graph_edge_length = wandb.config.GRAPH_EDGE_LENGTH
+    add_leaves_edge_length = wandb.config.ADD_LEAVES_EDGE_LENGTH
 
     # print the arguments
     print("N_TILES: " + str(n_tiles))
@@ -65,7 +67,8 @@ def main():
     print("GRAPH_MAXIMUM_CUMULATIVE_GAP: " + str(graph_maximum_cumulative_gap))
     print("ADD_LEAVES_VOXEL_LENGTH: " + str(add_leaves_voxel_length))
     print("FIND_STEMS_MIN_POINTS: " + str(find_stems_min_points))
-
+    print("GRAPH_EDGE_LENGTH: " + str(graph_edge_length))
+    print("ADD_LEAVES_EDGE_LENGTH: " + str(add_leaves_edge_length))
 
     # define the command
     cmd = "./run_all_command_line.sh"
@@ -83,7 +86,9 @@ def main():
         "-t", str(find_stems_thickness),
         "-g", str(graph_maximum_cumulative_gap),
         "-l", str(add_leaves_voxel_length),
-        "-m", str(find_stems_min_points)
+        "-m", str(find_stems_min_points),
+        "-o", str(graph_edge_length),
+        "-p", str(add_leaves_edge_length)
     ])
 
     # run the command with the arguments
@@ -110,4 +115,4 @@ def main():
 sweep_id = wandb.sweep(sweep=sweep_configuration, project="sweep-train", entity="maciej-wielgosz-nibio")
 
 # run the sweep
-wandb.agent(sweep_id, function=main, count=1000)
+wandb.agent(sweep_id, function=main, count=2)
