@@ -32,6 +32,7 @@ sweep_configuration = {
         'GRAPH_MAXIMUM_CUMULATIVE_GAP': {'values': [5, 10, 15, 20]}, # 5 - 20
         'ADD_LEAVES_VOXEL_LENGTH': {'values': [0.1, 0.25, 0.5, 0.75]}, # 0.1 - 0.5
         'FIND_STEMS_MIN_POINTS': {'values': [10, 20, 30, 50, 100, 150, 200]}, # 50 - 500
+        # new parameters
         'GRAPH_EDGE_LENGTH' : {'values': [0.5, 1.0, 1.5, 2.0]},
         'ADD_LEAVES_EDGE_LENGTH': {'values': [0.2, 0.5, 0.75, 1.0, 1.5]}
     }
