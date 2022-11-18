@@ -1,4 +1,3 @@
-
 # Orinal repo
 For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT
 
@@ -21,7 +20,10 @@ sudo bash Miniconda3-latest-Linux-x86_64.sh -p /miniconda -b
 sudo groupadd anaconda_admin
 sudo chown -R :anaconda_admin /miniconda
 sudo chmod -R 775 /miniconda 
-sudo adduser nibio anaconda_admin
+sudo adduser nibio anaconda_admin 
+```
+reboot of the docker may be need at this point
+```
 /miniconda/bin/conda update conda
 /miniconda/bin/conda init
 
