@@ -16,14 +16,14 @@ class InstanceSegmentationMetrics:
         input_file_path, 
         instance_segmented_file_path, 
         remove_ground = False,
-        save_to_csv=False,
+        csv_file_name=None,
         verbose=False
         ) -> None:
 
         self.input_file_path = input_file_path
         self.instance_segmented_file_path = instance_segmented_file_path
         self.remove_ground = remove_ground
-        self.save_to_csv = save_to_csv
+        self.csv_file_name = csv_file_name
         self.verbose = verbose
         # read and prepare input las file and instance segmented las file
         self.input_las = laspy.read(self.input_file_path)
@@ -32,9 +32,9 @@ class InstanceSegmentationMetrics:
         self.X_labels = self.input_las.treeID.astype(int) #TODO: generalize this to other labels
         # get labels from instance segmented las file
         self.Y_labels = self.instance_segmented_las.instance_nr.astype(int) #TODO: generalize this to other labels
-        if self.remove_ground:
-            # the labeling starts from 0, so we need to remove the ground
-            self.Y_labels += 1
+        # if self.remove_ground:
+        #     # the labeling starts from 0, so we need to remove the ground
+        #     self.Y_labels += 1
    
         # do knn mapping
         self.dict_Y = self.do_knn_mapping()
@@ -257,7 +257,8 @@ class InstanceSegmentationMetrics:
 
             # create tmp dict
             tmp_dict = {
-            'dominant_label': dominant_label,
+            'pred_label': label,
+            'gt_label(dominant_label)': dominant_label,
             'high_of_tree': hight_of_tree,
             'sum_all': sum_all,
             'true_positive': true_positive, 
@@ -290,7 +291,8 @@ class InstanceSegmentationMetrics:
 
     def save_to_csv_file(self, metric_dict):
         df = pd.DataFrame(metric_dict).T
-        df.to_csv('metrics_instance_segmentation.csv')
+        # save to csv file and show the index
+        df.to_csv(self.csv_file_name, index=True, header=True)
 
 
     def main(self):
@@ -301,9 +303,10 @@ class InstanceSegmentationMetrics:
             for key, value in metric_dict.items():
                 print(f'Label: {key}, f1_score: {value["f1_score"]}, high_of_tree: {value["high_of_tree"]}')
        
-        if self.save_to_csv:
+        if self.csv_file_name is not None:
             self.save_to_csv_file(metric_dict)
-            print(f'CSV file saved to: {os.path.join(os.getcwd(), "metrics_instance_segmentation.csv")}')
+            if self.verbose:
+                print(f'Metrics saved to {self.csv_file_name}')
 
         return metric_dict, f1_score_weighted
 
@@ -315,7 +318,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_file_path', type=str, required=True)
     parser.add_argument('--instance_segmented_file_path', type=str, required=True)
     parser.add_argument('--remove_ground', action='store_true', help="Do not take into account the ground (class 0).", default=False)
-    parser.add_argument('--save_to_csv', action='store_true', help="Save the metrics to a csv file", default=False)
+    parser.add_argument('--csv_file_name', type=str, help="Name of the csv file to save the metrics to", default=None)
     parser.add_argument('--verbose', action='store_true', help="Print information about the process", default=False)
 
     args = parser.parse_args()
@@ -325,7 +328,7 @@ if __name__ == '__main__':
         args.input_file_path, 
         args.instance_segmented_file_path, 
         args.remove_ground,
-        args.save_to_csv,
+        args.csv_file_name,
         args.verbose
         )
     
