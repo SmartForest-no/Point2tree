@@ -85,7 +85,9 @@ class InstanceSegmentationMetricsInFolder():
             raise Exception('Not all las files in the gt_las_folder_path and target_las_folder_path are matched')
 
         # run the instance segmentation metrics for each matched las file
-        f1_scores = []
+        metric_dict_list = []
+        f1_scores_weighted_list = []
+
 
         for gt_las_file_path, target_las_file_path in matched_paths:
             # get the core name of the gt_las_file_path
@@ -122,12 +124,15 @@ class InstanceSegmentationMetricsInFolder():
                     csv_file_name=save_to_csv_path,
                     verbose=self.verbose
                 )
-                _, f1_score_weighted = instance_segmentation_metrics.main()
-                f1_scores.append(f1_score_weighted)
+                metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean = instance_segmentation_metrics.main()
+                f1_score_weighted = metric_dict_mean['f1_score']
+                metric_dict_list.append(metric_dict.values()) #TODO: finish this
+                f1_scores_weighted_list.append(f1_score_weighted)
 
-        # calculate the mean f1 score
-        mean_f1_score = sum(f1_scores) / len(f1_scores)
+        # calculate the mean f1 score of weighted f1 scores
+        mean_f1_score = sum(f1_scores_weighted_list) / len(f1_scores_weighted_list)
 
+   
         if self.output_folder_path is not None:
             # create the output folder path
             save_to_csv_path = os.path.join(self.output_folder_path, 'mean_f1_score.csv')
@@ -138,7 +143,6 @@ class InstanceSegmentationMetricsInFolder():
 
         if self.verbose:
             print('Mean F1 Score: {}'.format(mean_f1_score))
-
 
         return mean_f1_score
 

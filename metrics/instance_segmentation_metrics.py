@@ -271,16 +271,39 @@ class InstanceSegmentationMetrics:
             'IoU': IoU,
             }
             metric_dict[str(label)] = tmp_dict
+        
+        # list of interesting metrics 
+        interesting_parameters = ['true_positive', 'false_positive', 'false_negative', 'true_negative', 'precision', 'recall', 'f1_score', 'IoU']
 
-        # compute a singel f1 score weighted by the tree hight
-        f1_score_weighted = 0
+        # weight the metrics by tree hight
+        metric_dict_weighted_by_tree_hight = {}
+        # itialize the metric_dict_weighted_by_tree_hight
+        for parameter in interesting_parameters:
+            metric_dict_weighted_by_tree_hight[parameter] = 0
+
         for key, value in metric_dict.items():
-            f1_score_weighted += value['f1_score'] * value['high_of_tree']
+            for parameter in interesting_parameters:
+                metric_dict_weighted_by_tree_hight[parameter] += value[parameter] * value['high_of_tree']
 
-        # compute f1_score_weighted by dividing by the sum of the hights of the trees
-        f1_score_weighted = f1_score_weighted / sum([value['high_of_tree'] for key, value in metric_dict.items()])
+        # compute the metric_dict_weighted_by_tree_hight
+        for parameter in interesting_parameters:
+            metric_dict_weighted_by_tree_hight[parameter] = metric_dict_weighted_by_tree_hight[parameter] / sum([value['high_of_tree'] for key, value in metric_dict.items()])
 
-        return metric_dict, f1_score_weighted
+        # compute the mean of the metrics
+        metric_dict_mean = {}
+        for parameter in interesting_parameters:
+            metric_dict_mean[parameter] = 0
+
+        for key, value in metric_dict.items():
+            for parameter in interesting_parameters:
+                metric_dict_mean[parameter] += value[parameter]
+
+        # compute the metric_dict_mean
+        for parameter in interesting_parameters:
+            metric_dict_mean[parameter] = metric_dict_mean[parameter] / len(metric_dict)
+
+
+        return metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean
 
     def print_metrics(self, metric_dict):
         for key, value in metric_dict.items():
@@ -296,10 +319,11 @@ class InstanceSegmentationMetrics:
 
 
     def main(self):
-        metric_dict, f1_score_weighted  = self.compute_metrics()
+        metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean  = self.compute_metrics()
 
         if self.verbose:
-            print(f'f1_score_weighted: {f1_score_weighted}')
+            f1_weighted_by_tree_hight = metric_dict_weighted_by_tree_hight['f1_score']
+            print(f'f1_score_weighted: {f1_weighted_by_tree_hight}')
             for key, value in metric_dict.items():
                 print(f'Label: {key}, f1_score: {value["f1_score"]}, high_of_tree: {value["high_of_tree"]}')
        
@@ -308,7 +332,7 @@ class InstanceSegmentationMetrics:
             if self.verbose:
                 print(f'Metrics saved to {self.csv_file_name}')
 
-        return metric_dict, f1_score_weighted
+        return metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean
 
 
 # main
@@ -333,5 +357,5 @@ if __name__ == '__main__':
         )
     
     # compute metrics
-    metric_dict = instance_segmentation_metrics.main()
+    metric_dict, _, _ = instance_segmentation_metrics.main()
    
