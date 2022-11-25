@@ -3,6 +3,8 @@ from scipy import optimize
 from scipy.spatial.transform import Rotation 
 from scipy.stats import variation
 import numpy as np
+np.random.seed(0)
+
 
 from matplotlib.patches import Circle
 import matplotlib.pyplot as plt

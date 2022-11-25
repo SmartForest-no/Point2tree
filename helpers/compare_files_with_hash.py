@@ -58,6 +58,6 @@ if __name__ == "__main__":
 
     # Comparing the hashes
     if file1_hash == file2_hash:
-        print("Files are identical")
+        print("identical")
     else:
-        print("Files are different")
+        print("different")

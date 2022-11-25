@@ -1,5 +1,7 @@
 import os
 import numpy as np
+np.random.seed(0)
+
 import fsct
 
 # Don't change these unless you really understand what you are doing with them/are learning the code base.

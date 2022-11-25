@@ -9,6 +9,8 @@ from tqdm import tqdm
 
 from fsct.tools import *
 
+from helpers.seed_everything import seed_everything
+
 def save_pts(params, I, bx, by, bz):
 
     pc = params.pc.loc[(params.pc.x.between(bx, bx + params.box_dims[0])) &
@@ -18,6 +20,7 @@ def save_pts(params, I, bx, by, bz):
     if len(pc) > params.min_points_per_box:
 
         if len(pc) > params.max_points_per_box:
+            print('Warning: box contains more points than max_points_per_box. Downsampling...')
             pc = pc.sample(n=params.max_points_per_box)
 
         np.save(os.path.join(params.working_dir, f'{I:07}'), pc[['x', 'y', 'z']].values)
@@ -113,6 +116,9 @@ def Preprocessing(params):
     for x in threads:
         x.join()
 
+    # for i, (bx, by, bz) in tqdm(enumerate(itertools.product(x_cnr, y_cnr, z_cnr))):
+    #     save_pts(params, i, bx, by, bz)
+
     if params.verbose: print("Preprocessing done in {} seconds\n".format(time.time() - start_time))
-    
+
     return params

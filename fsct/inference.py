@@ -3,6 +3,7 @@ import time
 import shutil
 import sys
 import glob
+import pickle
 
 import pandas as pd
 import numpy as np
@@ -71,22 +72,35 @@ def SemanticSegmentation(params):
     with torch.no_grad():
         output_point_cloud = np.zeros((0, 3 + 4))
         output_list = []
+        # out_list = []
+        counter = 0
         for data in tqdm(test_loader, disable=False if params.verbose else True):
             data = data.to(params.device)
             out = model(data)
+            # out_list.append(out.cpu().numpy())
             out = out.permute(2, 1, 0).squeeze()
             batches = np.unique(data.batch.cpu())
             out = torch.softmax(out.cpu().detach(), axis=1)
             pos = data.pos.cpu()
             output = np.hstack((pos, out))
+            counter += 1
 
             for batch in batches:
                 outputb = np.asarray(output[data.batch.cpu() == batch])
                 outputb[:, :3] = outputb[:, :3] + np.asarray(data.local_shift.cpu())[3 * batch:3 + (3 * batch)]
                 output_list.append(outputb)
 #             break
+            # save intermediate out_list to npy with a filename what contains the counter
+            # pickle.dump(out_list, open(os.path.join(params.odir, 'out_list_{}.pkl'.format(counter)), 'wb'))
+        
 
         classified_pc = np.vstack(output_list)
+
+    # sage classified as a pickle
+    pickle.dump(classified_pc, open(os.path.join(params.odir, 'classified_pc.pkl'), 'wb'))
+
+    # save classified point cloud to npy
+    # np.save(os.path.join(params.working_dir, 'classified_pc.npy'), classified_pc)
 
     # clean up anything no longer needed to free RAM.
     del outputb, out, batches, pos, output  

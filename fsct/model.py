@@ -17,6 +17,10 @@ from matplotlib.lines import Line2D
 from matplotlib.animation import FuncAnimation
 from torch.optim.lr_scheduler import ExponentialLR
 
+from helpers.seed_everything import seed_everything
+
+seed_everything(42)
+
 
 class SAModule(torch.nn.Module):
     def __init__(self, ratio, r, NN):
