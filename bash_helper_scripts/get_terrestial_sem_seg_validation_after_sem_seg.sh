@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET_FOLDER=/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/maciek
+TARGET_FOLDER=/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/sample_playground
 # clean the folder
 rm -rf $TARGET_FOLDER/*
 
