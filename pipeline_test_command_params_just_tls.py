@@ -5,9 +5,6 @@ import wandb
 from metrics.instance_segmentation_metrics_in_folder import \
     InstanceSegmentationMetricsInFolder
 
-# wandb.login()
-
-# wandb.init(project="instance_segmentation_classic", entity="smart_forest")
 
 # define a class to run the command with arguments
 class RunCommand:
@@ -30,9 +27,12 @@ def main(
     graph_edge_length, 
     add_leaves_edge_length
     ):
+    
+    USE_WANDB = False
 
     # initialize the sweep
-    run = wandb.init(project="paper-sweep-nibio-model-just-tls", entity="smart_forest")
+    if USE_WANDB:
+        run = wandb.init(project="paper-sweep-nibio-model-just-tls", entity="smart_forest")
 
     # get files for the sweep
     print("Getting files for the sweep")
@@ -92,7 +92,10 @@ def main(
 
     # log the metric
     print("Logging the metric")
-    wandb.log({"f1_score": f1_score})
+    if USE_WANDB:
+        wandb.log({"f1_score": f1_score})
+
+    return f1_score
 
 if __name__ == "__main__":
     # use argparse to get the arguments
