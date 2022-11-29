@@ -19,7 +19,7 @@ class FindParamImportance:
 
     def get_data(self):
         runs = []
-        for line in open('logs.json', 'r'):
+        for line in open(self.logs_json_file, 'r'):
             runs.append(json.loads(line))
 
         # get header of the logs
@@ -70,6 +70,8 @@ class FindParamImportance:
     def gen_plot_of_feature_importance(self, feature_importance):
         plt.figure(figsize=(10, 6))
         plt.barh(feature_importance['feature'], feature_importance['importance'])
+        # reduce the font size of the labels
+        plt.yticks(fontsize=6)
         plt.title('Feature Importance')
 
         # save the plot
