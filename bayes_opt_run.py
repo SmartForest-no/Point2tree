@@ -1,6 +1,7 @@
 from bayes_opt import BayesianOptimization
 from bayes_opt.logger import JSONLogger
 from bayes_opt.event import Events
+from bayes_opt.util import load_logs
 
 
 from pipeline_test_command_params_just_tls import RunCommand
@@ -50,10 +51,13 @@ optimizer = BayesianOptimization(
     allow_duplicate_points=True
 )
 
-logger = JSONLogger(path="./bayes_opt_run_logs.json")
+# load the logs
+load_logs(optimizer, logs=["./bayes_opt_run_logs.json"])
+
+logger = JSONLogger(path="./bayes_opt_run_logs_1.json")
 optimizer.subscribe(Events.OPTIMIZATION_STEP, logger)
 
 optimizer.maximize(
-    init_points=5,
+    init_points=1,
     n_iter=100
 )
