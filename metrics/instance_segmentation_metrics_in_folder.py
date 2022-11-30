@@ -39,6 +39,8 @@ class InstanceSegmentationMetricsInFolder():
             # print names of the folders
             print('gt_las_folder_path: ' + self.gt_las_folder_path)
             print('target_las_folder_path: ' + self.target_las_folder_path)
+            print('Number of files in gt_las_folder_path: ' + str(len(gt_las_file_paths)))
+            print('Number of files in target_las_folder_path: ' + str(len(target_las_file_paths)))
             raise Exception('The number of las files in the gt_las_folder_path and target_las_folder_path are not the same')
 
         # iterate over the las files
