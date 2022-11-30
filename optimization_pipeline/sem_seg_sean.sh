@@ -121,7 +121,7 @@ done
 for d in $data_folder/segmented_point_clouds/tiled/*/; do
     for f in $d/*.ply; do
         echo "Processing $f file..."
-        python fsct/run.py \
+        python sean_sem_seg/run_single_file.py \
         --model /home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/fsct/model/model.pth \
         --point-cloud $f \
         --batch_size 10 \
