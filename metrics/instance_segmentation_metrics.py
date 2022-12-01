@@ -99,10 +99,10 @@ class InstanceSegmentationMetrics:
 
         for key_outer, value_outer in target_dict.items():
             tmp_dict = {}
+            
             for item_inner in value_outer.keys():
                 if item_inner == label:
                     tmp_dict[item_inner] = value_outer[item_inner]
-
             new_dict[key_outer] = (tmp_dict)
         return new_dict
 
@@ -110,7 +110,7 @@ class InstanceSegmentationMetrics:
     # define a function that finds class in input_file with the most points
     def find_dominant_classes_in_gt(self, input_file):
         # get the unique labels
-        unique_labels = np.unique(input_file.treeID)
+        unique_labels = np.unique(input_file.treeID).astype(int)
         # create a dictionary
         tmp_dict = {}
         for label in unique_labels:
@@ -170,9 +170,8 @@ class InstanceSegmentationMetrics:
         label_mapping_dict = {}
 
         dominant_labels_sorted = self.get_dominant_lables_sorted()
-    
-
         gt_classes_to_iterate = self.find_dominant_classes_in_gt(self.input_las)
+
         for gt_class in gt_classes_to_iterate:
             # if all the values in dominant_labels_sorted are empty, break the loop
 
@@ -183,7 +182,7 @@ class InstanceSegmentationMetrics:
         
             if not any(dominant_labels_sorted.values()):
                 break
-
+            
             if len(dominant_labels_sorted) == 1:
                 dominant_label_key, dominant_label = self.get_the_dominant_label(dominant_labels_sorted)
                 label_mapping_dict[dominant_label_key] = dominant_label
@@ -322,7 +321,7 @@ class InstanceSegmentationMetrics:
         metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean  = self.compute_metrics()
 
         if self.verbose:
-            f1_weighted_by_tree_hight = metric_dict_weighted_by_tree_hight['f1_score']
+            f1_weighted_by_tree_hight = metric_dict_mean['f1_score']
             print(f'f1_score_weighted: {f1_weighted_by_tree_hight}')
             for key, value in metric_dict.items():
                 print(f'Label: {key}, f1_score: {value["f1_score"]}, high_of_tree: {value["high_of_tree"]}')
