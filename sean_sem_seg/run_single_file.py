@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Run the FSCT pipeline of Sean semantic seg.")
     parser.add_argument("--point-cloud", "-p", default="", type=str, help="path to point cloud", required=True)
     parser.add_argument("--model", "-m", default="", type=str, help="path to model")
-    parser.add_argument("--batch_size", "-b", default=1, type=int, help="batch size")
+    parser.add_argument("--batch_size", "-b", default=5, type=int, help="batch size")
     parser.add_argument("--odir", "-o", default=".", type=str, help="output directory")
     parser.add_argument("--verbose", help="Print more information.", action="store_true")
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     ReduceLabelsValuesInLas(
         las_file_path = os.path.join(args.odir, "segmented_cleaned.las"),
         label_name="label",
-        verbose=False
+        verbose=args.verbose
         ).main()
 
     # translate segmented_cleaned.las to segmented_cleaned.ply using pdal

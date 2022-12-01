@@ -23,9 +23,16 @@ class ReduceLabelsValuesInLas:
 
         target_extra_dimensions = list(las.point_format.extra_dimension_names)
 
+        # print all the target extra dimensions
+        if self.verbose:
+            logging.info('target_extra_dimensions: {}'.format(target_extra_dimensions))
+
         # add extra dimensions to new las file
         for item in target_extra_dimensions:
             new_header.add_extra_dim(laspy.ExtraBytesParams(name=item, type=np.int32))
+
+        if 'height_above_DTM' in target_extra_dimensions:
+            new_header.add_extra_dim(laspy.ExtraBytesParams(name='n_z', type=np.int32)) 
 
         new_las = laspy.LasData(new_header)
          # copy x, y, z, gt_label and target_label from target las file to the new las file
@@ -38,7 +45,10 @@ class ReduceLabelsValuesInLas:
             new_las[item] = las[item]
 
         new_las[self.label_name] = las[self.label_name] - 1
-
+        # the line below is need because Phil has a different notation than Sean
+        if 'height_above_DTM' in target_extra_dimensions:
+            new_las['n_z'] = las['height_above_DTM']
+            
         # write the new las file
         new_las.write(self.las_file_path)
 
