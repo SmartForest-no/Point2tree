@@ -1,55 +1,87 @@
-
 import argparse
 import os
 import laspy
 from matplotlib import pyplot as plt
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 from tqdm import tqdm
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, f1_score, precision_score, recall_score
 
 
 class MetricSemSeg:
+    """
+    This function returns the metrics for semantic segmentation. It takes in the ground truth folder and the predicted folder.
+    It returns the following metrics:
+    1. f1 score
+    2. precision score
+    3. recall score
+    4. confusion matrix
+
+    The input point clouds should be in the las format.
+    """
     def __init__(
         self, 
-        folder_with_results, 
+        gt_folder,
+        pred_folder,
         plot_confusion_matrix=False, 
-        suffix_of_the_folder_with_results='_FSCT_output', 
         verbose=False
         ):
-
-        self.folder_with_results = folder_with_results
+        self.gt_folder = gt_folder
+        self.pred_folder = pred_folder
         self.plot_confusion_matrix = plot_confusion_matrix
-        self.suffix_of_the_folder_with_results = suffix_of_the_folder_with_results
         self.verbose = verbose
 
+
+
     def get_file_name_list(self):
-        """
-        It is assumed that the original point clouds are in the folder with results.
-        This function returns a list of file names of the original point clouds.
-        """
-        print("folder_with_results: ", self.folder_with_results)
 
-        file_original_name_list = [f for f in os.listdir(self.folder_with_results) if os.path.isfile(os.path.join(self.folder_with_results, f))]
-        file_original_name_list = [f for f in file_original_name_list if f.endswith('.las') or f.endswith('.laz')]
+        # get list of the original point clouds
+        file_name_list_original = []
+        for file in os.listdir(self.gt_folder):
+            if file.endswith(".las"):
+                file_name_list_original.append(os.path.join(self.gt_folder, file))
 
-        # get prefix of the file name
-        file_name_prefix_list = [f[:-4] for f in file_original_name_list]
-        
-        # create paths to the folders with results
-        folder_with_results_list = [os.path.join(self.folder_with_results, f + self.suffix_of_the_folder_with_results) for f in file_name_prefix_list]
-        # get files of the name "segmented_clean.las" from the folders with results
-        file_predicted_name_list = [os.path.join(f, 'segmented_cleaned.las') for f in folder_with_results_list]
-        # file_predicted_name_list = [os.path.join(f, 'segmented.las') for f in folder_with_results_list]
+        # sort the list in place
+        file_name_list_original.sort()
 
-        # get full paths to the original files
-        file_original_name_list = [os.path.join(self.folder_with_results, f) for f in file_original_name_list]
+        # get list of the predicted point clouds
+        file_name_list_predicted = []
+        for file in os.listdir(self.pred_folder):
+            if file.endswith(".las"):
+                file_name_list_predicted.append(os.path.join(self.pred_folder, file))
 
-        # put original and predicted files into a tuple
-        file_name_list = []
+        # sort the list in place
+        file_name_list_predicted.sort()
 
-        for i in range(len(file_original_name_list)):
-            file_name_list.append((file_original_name_list[i], file_predicted_name_list[i]))
-   
+        if self.verbose:
+            print("file_name_list_original: ", file_name_list_original)
+            print("file_name_list_predicted: ", file_name_list_predicted)
+
+        # check if the number of files in the two folders is the same
+        if len(file_name_list_original) != len(file_name_list_predicted):
+            raise Exception('The number of files in the two folders is not the same.')
+
+        # get core names of ground truth point clouds
+        file_name_list_original_core = []
+        for file_name in file_name_list_original:
+            file_name_list_original_core.append(os.path.basename(file_name).split('.')[0])
+
+        # get core names of predicted point clouds
+        file_name_list_predicted_core = []
+        for file_name in file_name_list_predicted:
+            file_name_list_predicted_core.append(os.path.basename(file_name).split('.')[0])
+
+        # remove the suffix of '.segmented' from the predicted point clouds
+        file_name_list_predicted_core = [file_name.split('.')[0] for file_name in file_name_list_predicted_core]
+
+        # compare the two lists and check if they are the same
+        if file_name_list_original_core != file_name_list_predicted_core:
+            raise ValueError("The two lists of point clouds are not the same")
+
+
+        # zip the two lists
+        file_name_list = list(zip(file_name_list_original, file_name_list_predicted))
+
         return file_name_list
 
     def get_labels_from_point_file(self, file_name):
@@ -74,15 +106,20 @@ class MetricSemSeg:
         """
 
         # get labels
-        labels_original = self.get_labels_from_point_file(file_name_original)
         labels_predicted = self.get_labels_from_point_file(file_name_predicted)
+        labels_original = self.get_labels_from_point_file(file_name_original) - 1
+        # print shape of labels
+        if self.verbose:
+            print("labels_predicted.shape: ", labels_predicted.shape)
+            print("labels_original.shape: ", labels_original.shape)
+
 
         # get points
         xyz_original = self.get_xyz_from_point_file(file_name_original)
         xyz_predicted = self.get_xyz_from_point_file(file_name_predicted)
 
         # find the closest point in the original point cloud for each point in the predicted point cloud using the euclidean distance using knn
-        from sklearn.neighbors import NearestNeighbors
+
         nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(xyz_original)
         distances, indices = nbrs.kneighbors(xyz_predicted)
 
@@ -94,7 +131,10 @@ class MetricSemSeg:
 
         # get picture of the confusion matrix
         if self.plot_confusion_matrix:
-            class_names = ['terrain', 'vegetation', 'CWD', 'stem']
+            if conf_matrix.shape[0] == 3:
+                class_names = ['terrain', 'vegetation', 'stem']
+            elif conf_matrix.shape[0] == 4:
+                class_names = ['terrain', 'vegetation', 'CWD', 'stem']
             disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=class_names)
             disp.plot()
             plt.savefig('confusion_matrix.png')
@@ -184,7 +224,6 @@ class MetricSemSeg:
 
         return results
       
-
     def main(self):
         # get the metrics for all point clouds
         if self.verbose:
@@ -200,19 +239,16 @@ class MetricSemSeg:
 if __name__ == '__main__':
     # use argparse to parse the arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--folder_with_results', type=str, default='original', help='directory of the original point clouds')
-    parser.add_argument('--plot_confusion_matrix', action='store_true', default=False, help='plot the confusion matrix')
-    parser.add_argument('--suffix_of_the_folder_with_results', type=str, default='_FSCT_output', help='suffix of the directory of the predicted point clouds')
+    parser.add_argument('--path_original', type=str, default='data/original', help='path to the original point clouds directory')
+    parser.add_argument('--path_predicted', type=str, default='data/predicted', help='path to the predicted point clouds directory')
+    parser.add_argument('--plot_confusion_matrix', action='store_true', default=False,  help='plot the confusion matrix')
     parser.add_argument('--verbose', action='store_true', default=False,  help='print more information')
     args = parser.parse_args()
 
     # create an instance of the class
-    metrics = MetricSemSeg(
-        args.folder_with_results, 
-        args.plot_confusion_matrix, 
-        args.suffix_of_the_folder_with_results,
-        args.verbose
-        )
+    metrics = MetricSemSeg(args.path_original, args.path_predicted, args.plot_confusion_matrix, args.verbose)
+
+    # get the metrics
     results = metrics.main()
 
 
