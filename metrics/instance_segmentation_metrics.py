@@ -28,16 +28,34 @@ class InstanceSegmentationMetrics:
         # read and prepare input las file and instance segmented las file
         self.input_las = laspy.read(self.input_file_path)
         self.instance_segmented_las = laspy.read(self.instance_segmented_file_path)
-        # get labels from input las file
-        self.X_labels = self.input_las.treeID.astype(int) #TODO: generalize this to other labels
-        # get labels from instance segmented las file
-        self.Y_labels = self.instance_segmented_las.instance_nr.astype(int) #TODO: generalize this to other labels
-        # if self.remove_ground:
-        #     # the labeling starts from 0, so we need to remove the ground
-        #     self.Y_labels += 1
-   
-        # do knn mapping
-        self.dict_Y = self.do_knn_mapping()
+
+        self.skip_flag = self.check_if_labels_exist()
+
+        if not self.skip_flag:
+            # get labels from input las file
+            self.X_labels = self.input_las.treeID.astype(int) #TODO: generalize this to other labels
+            # get labels from instance segmented las file
+            self.Y_labels = self.instance_segmented_las.instance_nr.astype(int) #TODO: generalize this to other labels
+            # if self.remove_ground:
+            #     # the labeling starts from 0, so we need to remove the ground
+            #     self.Y_labels += 1
+    
+            # do knn mapping
+            self.dict_Y = self.do_knn_mapping()
+        else:
+            logging.info('Skipping the file: {}'.format(self.input_file_path))
+
+
+    def check_if_labels_exist(self, X_label='treeID', Y_label='instance_nr'):
+        # check if the labels exist in the las files
+        skip_flag = False
+
+        if X_label not in self.input_las.header.point_format.dimension_names:
+            skip_flag = True
+        if Y_label not in self.instance_segmented_las.header.point_format.dimension_names:
+            skip_flag = True
+        
+        return skip_flag
 
     def do_knn_mapping(self):
         X = self.input_las.xyz
@@ -211,67 +229,68 @@ class InstanceSegmentationMetrics:
 
     def compute_metrics(self):
         # get the label_mapping_dict
-        label_mapping_dict = self.iterate_over_pc()
-        print("label_mapping_dict: ", label_mapping_dict)
         metric_dict = {}
 
-        for label in list(label_mapping_dict.keys()):
-            # get the indices of Y_labels == label
-            ind_Y_labels_label = np.where(self.Y_labels == label)[0]
+        if not self.skip_flag:
+            label_mapping_dict = self.iterate_over_pc()
 
-            # get the ind_labels_Y for these indices
-            ind_labels_Y = self.dict_Y['ind_labels_Y'][ind_Y_labels_label]
+            for label in list(label_mapping_dict.keys()):
+                # get the indices of Y_labels == label
+                ind_Y_labels_label = np.where(self.Y_labels == label)[0]
 
-            # get the dominant label for this label
-            dominant_label = label_mapping_dict[label]
+                # get the ind_labels_Y for these indices
+                ind_labels_Y = self.dict_Y['ind_labels_Y'][ind_Y_labels_label]
 
-            # get the indices of ind_labels_Y == dominant_label
-            ind_dominant_label = np.where(ind_labels_Y == dominant_label)[0]
+                # get the dominant label for this label
+                dominant_label = label_mapping_dict[label]
 
-            # true positive is the number of points for dominant_label
-            true_positive = ind_dominant_label.shape[0]
+                # get the indices of ind_labels_Y == dominant_label
+                ind_dominant_label = np.where(ind_labels_Y == dominant_label)[0]
 
-            # false positive is the number of all the points of this dominant_label label minus the true positive
-            false_positive = np.where(self.dict_Y['ind_labels_Y'] == dominant_label)[0].shape[0] - true_positive
+                # true positive is the number of points for dominant_label
+                true_positive = ind_dominant_label.shape[0]
 
-            # false negative is the number of all the points in Y_labels minus the number of points of true_positive
-            false_negative = np.where(ind_labels_Y != dominant_label)[0].shape[0] 
+                # false positive is the number of all the points of this dominant_label label minus the true positive
+                false_positive = np.where(self.dict_Y['ind_labels_Y'] == dominant_label)[0].shape[0] - true_positive
 
-            # true negative is the number of all the points minus the number of points of true_positive and false_positive
-            true_negative = self.dict_Y['ind_labels_Y'].shape[0] - false_negative - true_positive - false_positive
+                # false negative is the number of all the points in Y_labels minus the number of points of true_positive
+                false_negative = np.where(ind_labels_Y != dominant_label)[0].shape[0] 
 
-            # sum all the true_positive, false_positive, false_negative, true_negative
-            sum_all = true_positive + false_positive + false_negative + true_negative
+                # true negative is the number of all the points minus the number of points of true_positive and false_positive
+                true_negative = self.dict_Y['ind_labels_Y'].shape[0] - false_negative - true_positive - false_positive
 
-            # get precision
-            precision = true_positive / (true_positive + false_positive)
-            # get recall
-            recall = true_positive / (true_positive + false_negative)
-            # get f1 score
-            f1_score = 2 * (precision * recall) / (precision + recall)
-            # get IoU
-            IoU = true_positive / (true_positive + false_positive + false_negative)
+                # sum all the true_positive, false_positive, false_negative, true_negative
+                sum_all = true_positive + false_positive + false_negative + true_negative
 
-            # find hight of the tree in the ground truth
-            hight_of_tree = (self.input_las[self.input_las.treeID == dominant_label].z).max() - (self.input_las[self.input_las.treeID == dominant_label].z).min()
+                # get precision
+                precision = true_positive / (true_positive + false_positive)
+                # get recall
+                recall = true_positive / (true_positive + false_negative)
+                # get f1 score
+                f1_score = 2 * (precision * recall) / (precision + recall)
+                # get IoU
+                IoU = true_positive / (true_positive + false_positive + false_negative)
 
-            # create tmp dict
-            tmp_dict = {
-            'pred_label': label,
-            'gt_label(dominant_label)': dominant_label,
-            'high_of_tree': hight_of_tree,
-            'sum_all': sum_all,
-            'true_positive': true_positive, 
-            'false_positive': false_positive, 
-            'false_negative': false_negative, 
-            'true_negative': true_negative,
-            'precision': precision,
-            'recall': recall,
-            'f1_score': f1_score,
-            'IoU': IoU,
-            }
-            metric_dict[str(label)] = tmp_dict
-        
+                # find hight of the tree in the ground truth
+                hight_of_tree = (self.input_las[self.input_las.treeID == dominant_label].z).max() - (self.input_las[self.input_las.treeID == dominant_label].z).min()
+
+                # create tmp dict
+                tmp_dict = {
+                'pred_label': label,
+                'gt_label(dominant_label)': dominant_label,
+                'high_of_tree': hight_of_tree,
+                'sum_all': sum_all,
+                'true_positive': true_positive, 
+                'false_positive': false_positive, 
+                'false_negative': false_negative, 
+                'true_negative': true_negative,
+                'precision': precision,
+                'recall': recall,
+                'f1_score': f1_score,
+                'IoU': IoU,
+                }
+                metric_dict[str(label)] = tmp_dict
+            
         # list of interesting metrics 
         interesting_parameters = ['true_positive', 'false_positive', 'false_negative', 'true_negative', 'precision', 'recall', 'f1_score', 'IoU']
 
