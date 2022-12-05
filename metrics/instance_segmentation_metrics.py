@@ -212,6 +212,7 @@ class InstanceSegmentationMetrics:
     def compute_metrics(self):
         # get the label_mapping_dict
         label_mapping_dict = self.iterate_over_pc()
+        print("label_mapping_dict: ", label_mapping_dict)
         metric_dict = {}
 
         for label in list(label_mapping_dict.keys()):
@@ -280,27 +281,28 @@ class InstanceSegmentationMetrics:
         for parameter in interesting_parameters:
             metric_dict_weighted_by_tree_hight[parameter] = 0
 
-        for key, value in metric_dict.items():
+        # do this if there is at least one label
+        if metric_dict:
+            for label in metric_dict.keys():
+                for parameter in interesting_parameters:
+                    metric_dict_weighted_by_tree_hight[parameter] += metric_dict[label]['high_of_tree'] * metric_dict[label][parameter]
+            # divide by the sum of the hights of the trees
             for parameter in interesting_parameters:
-                metric_dict_weighted_by_tree_hight[parameter] += value[parameter] * value['high_of_tree']
-
-        # compute the metric_dict_weighted_by_tree_hight
-        for parameter in interesting_parameters:
-            metric_dict_weighted_by_tree_hight[parameter] = metric_dict_weighted_by_tree_hight[parameter] / sum([value['high_of_tree'] for key, value in metric_dict.items()])
+                metric_dict_weighted_by_tree_hight[parameter] /= sum([metric_dict[label]['high_of_tree'] for label in metric_dict.keys()])
 
         # compute the mean of the metrics
         metric_dict_mean = {}
         for parameter in interesting_parameters:
             metric_dict_mean[parameter] = 0
 
-        for key, value in metric_dict.items():
+        # do this if there is at least one label
+        if metric_dict:
+            for key, value in metric_dict.items():
+                for parameter in interesting_parameters:
+                    metric_dict_mean[parameter] += value[parameter]
+
             for parameter in interesting_parameters:
-                metric_dict_mean[parameter] += value[parameter]
-
-        # compute the metric_dict_mean
-        for parameter in interesting_parameters:
-            metric_dict_mean[parameter] = metric_dict_mean[parameter] / len(metric_dict)
-
+                metric_dict_mean[parameter] = metric_dict_mean[parameter] / len(metric_dict)
 
         return metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean
 
@@ -321,7 +323,7 @@ class InstanceSegmentationMetrics:
         metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean  = self.compute_metrics()
 
         if self.verbose:
-            f1_weighted_by_tree_hight = metric_dict_mean['f1_score']
+            f1_weighted_by_tree_hight = metric_dict_weighted_by_tree_hight['f1_score']
             print(f'f1_score_weighted: {f1_weighted_by_tree_hight}')
             for key, value in metric_dict.items():
                 print(f'Label: {key}, f1_score: {value["f1_score"]}, high_of_tree: {value["high_of_tree"]}')
@@ -357,4 +359,3 @@ if __name__ == '__main__':
     
     # compute metrics
     metric_dict, _, _ = instance_segmentation_metrics.main()
-   
