@@ -53,6 +53,9 @@ class PlotProgressJson:
         # get the target
         y = df['target']
 
+        plt.ylim([0.6, 0.8])
+
+      
         # plot the progress
         plt.plot(y)
         plt.xlabel('Iteration')
