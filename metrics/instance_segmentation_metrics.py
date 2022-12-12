@@ -323,6 +323,36 @@ class InstanceSegmentationMetrics:
             for parameter in interesting_parameters:
                 metric_dict_mean[parameter] = metric_dict_mean[parameter] / len(metric_dict)
 
+        # compute tree level metrics
+        if metric_dict:
+            # get the number of trees in the ground truth
+            gt_trees = np.unique(self.input_las.treeID)
+
+            # get the number of trees that are predicted correctly
+            trees_predicted = np.unique([metric_dict[key]['gt_label(dominant_label)'] for key in metric_dict.keys()])
+
+            # iterate over metric_dict and get the number of trees that are predicted correctly with IoU > 0.5
+            trees_correctly_predicted_IoU = np.unique([metric_dict[key]['gt_label(dominant_label)'] for key in metric_dict.keys() if metric_dict[key]['IoU'] > 0.5])
+
+            # convert to set
+            gt_trees = set(gt_trees)
+            trees_predicted = set(trees_predicted)
+            trees_correctly_predicted_IoU = set(trees_correctly_predicted_IoU)
+
+            tree_level_metric = {
+                'true_positve (detection rate)': len(trees_correctly_predicted_IoU), 
+                'false_positve (commission)': len(trees_predicted - trees_correctly_predicted_IoU), 
+                'false_negative (omissions)': len(gt_trees - trees_predicted - trees_correctly_predicted_IoU), 
+                'gt': len(gt_trees)}
+
+            if self.verbose:
+                print('Tree level metrics:')    
+                print(f'Trees in the ground truth: {gt_trees}')
+                print(f'Trees correctly predicted: {trees_predicted}')
+                print(f'Trees correctly predicted with IoU > 0.5: {trees_correctly_predicted_IoU}')
+
+                print(tree_level_metric)
+
         return metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean
 
     def print_metrics(self, metric_dict):
