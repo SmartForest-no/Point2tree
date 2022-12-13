@@ -272,13 +272,20 @@ class InstanceSegmentationMetrics:
                 IoU = true_positive / (true_positive + false_positive + false_negative)
 
                 # find hight of the tree in the ground truth
-                hight_of_tree = (self.input_las[self.input_las.treeID == dominant_label].z).max() - (self.input_las[self.input_las.treeID == dominant_label].z).min()
+                hight_of_tree_gt = (self.input_las[self.X_labels == dominant_label].z).max() - (self.input_las[self.X_labels == dominant_label].z).min()
+                # find hight of the tree in the prediction
+                hight_of_tree_pred = (self.instance_segmented_las[self.Y_labels == label].z).max() - (self.instance_segmented_las[self.Y_labels == label].z).min()
+               
+                # get resiudal of the hight of the tree in the prediction
+                residual_hight_of_tree_pred = hight_of_tree_gt - hight_of_tree_pred
 
                 # create tmp dict
                 tmp_dict = {
                 'pred_label': label,
                 'gt_label(dominant_label)': dominant_label,
-                'high_of_tree': hight_of_tree,
+                'high_of_tree_gt': hight_of_tree_gt,
+                'high_of_tree_pred': hight_of_tree_pred,
+                'residual_hight(gt_minus_pred)': residual_hight_of_tree_pred,
                 'sum_all': sum_all,
                 'true_positive': true_positive, 
                 'false_positive': false_positive, 
@@ -304,10 +311,10 @@ class InstanceSegmentationMetrics:
         if metric_dict:
             for label in metric_dict.keys():
                 for parameter in interesting_parameters:
-                    metric_dict_weighted_by_tree_hight[parameter] += metric_dict[label]['high_of_tree'] * metric_dict[label][parameter]
+                    metric_dict_weighted_by_tree_hight[parameter] += metric_dict[label]['high_of_tree_gt'] * metric_dict[label][parameter]
             # divide by the sum of the hights of the trees
             for parameter in interesting_parameters:
-                metric_dict_weighted_by_tree_hight[parameter] /= sum([metric_dict[label]['high_of_tree'] for label in metric_dict.keys()])
+                metric_dict_weighted_by_tree_hight[parameter] /= sum([metric_dict[label]['high_of_tree_gt'] for label in metric_dict.keys()])
 
         # compute the mean of the metrics
         metric_dict_mean = {}
@@ -375,7 +382,10 @@ class InstanceSegmentationMetrics:
             f1_weighted_by_tree_hight = metric_dict_weighted_by_tree_hight['f1_score']
             print(f'f1_score_weighted: {f1_weighted_by_tree_hight}')
             for key, value in metric_dict.items():
-                print(f'Label: {key}, f1_score: {value["f1_score"]}, high_of_tree: {value["high_of_tree"]}')
+                print(f'Label: {key}')
+                for key2, value2 in value.items():
+                    print(f'{key2}: {value2}')
+                print('')
        
         if self.csv_file_name is not None:
             self.save_to_csv_file(metric_dict)
