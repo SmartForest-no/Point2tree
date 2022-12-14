@@ -335,6 +335,9 @@ class InstanceSegmentationMetrics:
             # get the number of trees in the ground truth
             gt_trees = np.unique(self.input_las.treeID)
 
+            # remove 0 from gt_trees
+            gt_trees = gt_trees[gt_trees != 0]
+
             # get the number of trees that are predicted correctly
             trees_predicted = np.unique([metric_dict[key]['gt_label(dominant_label)'] for key in metric_dict.keys()])
 
