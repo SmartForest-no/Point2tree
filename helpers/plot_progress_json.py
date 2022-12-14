@@ -80,6 +80,32 @@ class PlotProgressJson:
         # add the legend
         plt.legend(['Target', 'Trendline', 'Trendline without zeros'])
 
+        # add the moving average
+        y_moving_average = y.rolling(window=10).mean()
+        plt.plot(y_moving_average, "y--")
+        # add the legend
+        plt.legend(['Target', 'Trendline', 'Trendline without zeros', 'Moving average'])
+
+        # get new y and change 0 with average of two neighbours 
+        y_new = y.copy()
+        for i in range(len(y_new)):
+            if y_new[i] == 0:
+                y_new[i] = (y_new[i-1] + y_new[i+1]) / 2
+        # use new y_new to plot a moving average
+        y_moving_average = y_new.rolling(window=10).mean()
+        plt.plot(y_moving_average, "m--")
+        # add the legend
+        plt.legend(['Target', 'Trendline', 'Trendline without zeros', 'Moving average', 'Moving average without zeros'])
+
+
+
+       
+    
+        
+
+        # add gradient information to the plot
+        plt.text(0.5, 0.5, f"Gradient: {z[0]:.4f}", fontsize=12, transform=plt.gcf().transFigure)
+
         plt.savefig(self.plot_file_path)
 
     def main(self):

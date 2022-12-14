@@ -167,7 +167,8 @@ for d in $data_folder/segmented_point_clouds/tiled/*; do
     mv $d{,.segmented}
 done
 
-
 # create folder for the output of the second step
 
 mkdir -p $data_folder/instance_segmented_point_clouds
+
+echo "Semantic segmentation done."
