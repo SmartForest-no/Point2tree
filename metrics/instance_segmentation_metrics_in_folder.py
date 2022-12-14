@@ -1,6 +1,7 @@
 import glob
 import os
 import argparse
+from joblib import Parallel, delayed
 import laspy
 
 from metrics.instance_segmentation_metrics import InstanceSegmentationMetrics
@@ -90,46 +91,20 @@ class InstanceSegmentationMetricsInFolder():
         metric_dict_list = []
         f1_scores_weighted_list = []
 
+        paralle_output = Parallel(n_jobs=-1, verbose=0)(
+            delayed(self.compute_metrics)(gt_las_file_path, target_las_file_path) for gt_las_file_path, target_las_file_path in matched_paths
+        )
 
-        for gt_las_file_path, target_las_file_path in matched_paths:
-            # get the core name of the gt_las_file_path
-            gt_las_file_core_name = os.path.basename(gt_las_file_path).split('.')[0]
-            # get the core name of the target_las_file_path
-            target_las_file_core_name = os.path.basename(target_las_file_path).split('.')[0]
+        # extract the metric_dict_list and f1_scores_weighted_list from the paralle_output
+        for metric_dict, f1_score_weighted in paralle_output:
+            metric_dict_list.append(metric_dict) #TODO: finish this
+            f1_scores_weighted_list.append(f1_score_weighted)
 
-            # check that the core name of the gt_las_file_path and target_las_file_path are the same
-            if gt_las_file_core_name == target_las_file_core_name:
-                if self.verbose:
-                    print('Processing: ' + gt_las_file_path + ' and ' + target_las_file_path)
-        
-                if self.output_folder_path is not None:
-                    # create the output folder path
-                    save_to_csv_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '.csv')
-                    # attach labels to the las file
-                    AttachLabelsToLasFile(
-                        gt_las_file_path,
-                        target_las_file_path,
-                        update_las_file_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '_updated.las'),
-                        gt_label_name='treeID',
-                        target_label_name='treeID',
-                        verbose=self.verbose
-                    ).main()
-
-                else:
-                    save_to_csv_path = None
-
-                # run the instance segmentation metrics
-                instance_segmentation_metrics = InstanceSegmentationMetrics(
-                    gt_las_file_path,
-                    target_las_file_path,
-                    remove_ground=self.remove_ground,
-                    csv_file_name=save_to_csv_path,
-                    verbose=self.verbose
-                )
-                metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean = instance_segmentation_metrics.main()
-                f1_score_weighted = metric_dict_mean['f1_score']
-                metric_dict_list.append(metric_dict.values()) #TODO: finish this
-                f1_scores_weighted_list.append(f1_score_weighted)
+        # this is serial version of the above code
+        # for gt_las_file_path, target_las_file_path in matched_paths:
+        #     metric_dict, f1_score_weighted = self.compute_metrics(gt_las_file_path, target_las_file_path)
+        #     metric_dict_list.append(metric_dict)
+        #     f1_scores_weighted_list.append(f1_score_weighted)
 
         # calculate the mean f1 score of weighted f1 scores
         mean_f1_score = sum(f1_scores_weighted_list) / len(f1_scores_weighted_list)
@@ -147,6 +122,45 @@ class InstanceSegmentationMetricsInFolder():
             print('Mean F1 Score: {}'.format(mean_f1_score))
 
         return mean_f1_score
+
+    def compute_metrics(self, gt_las_file_path, target_las_file_path):
+        # get the core name of the gt_las_file_path
+        gt_las_file_core_name = os.path.basename(gt_las_file_path).split('.')[0]
+        # get the core name of the target_las_file_path
+        target_las_file_core_name = os.path.basename(target_las_file_path).split('.')[0]
+
+        # check that the core name of the gt_las_file_path and target_las_file_path are the same
+        if gt_las_file_core_name == target_las_file_core_name:
+            if self.verbose:
+                print('Processing: ' + gt_las_file_path + ' and ' + target_las_file_path)
+    
+            if self.output_folder_path is not None:
+                # create the output folder path
+                save_to_csv_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '.csv')
+                # attach labels to the las file
+                AttachLabelsToLasFile(
+                    gt_las_file_path,
+                    target_las_file_path,
+                    update_las_file_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '_updated.las'),
+                    gt_label_name='treeID',
+                    target_label_name='treeID',
+                    verbose=self.verbose
+                ).main()
+
+            else:
+                save_to_csv_path = None
+
+            # run the instance segmentation metrics
+            instance_segmentation_metrics = InstanceSegmentationMetrics(
+                gt_las_file_path,
+                target_las_file_path,
+                remove_ground=self.remove_ground,
+                csv_file_name=save_to_csv_path,
+                verbose=self.verbose
+            )
+            metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean = instance_segmentation_metrics.main()
+            f1_score_weighted = metric_dict_mean['f1_score']
+        return metric_dict, f1_score_weighted
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
