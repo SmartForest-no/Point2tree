@@ -7,13 +7,18 @@ CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
 
 # Tiling parameters
 data_folder="" # path to the folder containing the data
+remove_small_tiles=0 # 1: remove small tiles, 0: not remove small tiles
 
 ############################# end of parameters declaration ############################
 
 # extract tiling parameters as command line arguments with the same default values
-while getopts "d:" opt; do
+
+# add remove_small_tiles parameter
+while getopts "d:z:" opt; do
   case $opt in
     d) data_folder="$OPTARG"
+    ;;
+    z) remove_small_tiles="$OPTARG"
     ;;
     \?) echo "Invalid option -$OPTARG" >&2
     ;;
@@ -27,6 +32,7 @@ echo "d: data_folder"
 # print values of the parameters 
 echo "      The values of the parameters:"
 echo "data_folder: $data_folder"
+echo "remove_small_tiles: $remove_small_tiles"
 
 # Do the environment setup
 # check if PYTHONPATH is set to the current directory
@@ -108,14 +114,20 @@ python nibio_preprocessing/tiling.py \
 --tile_size 10
 
 # remove small tiles using nibio_preprocessing/remove_small_tiles.py
-for d in $data_folder/segmented_point_clouds/tiled/*; do
-    echo "Removing small tiles from $d"
-    python nibio_preprocessing/remove_small_tiles.py \
-    --dir $d \
-    --tile_index $d/tile_index.dat \
-    --min_density 75 \
-    --verbose
-done
+
+# make it conditional bassed remove_small_tiles parameter
+if  [ $remove_small_tiles -eq 1 ]
+then
+    # iterate over all the directories in the tiled folder
+    for d in $data_folder/segmented_point_clouds/tiled/*; do
+        echo "Removing small tiles from $d"
+        python nibio_preprocessing/remove_small_tiles.py \
+        --dir $d \
+        --tile_index $d/tile_index.dat \
+        --min_density 75 \
+        --verbose
+    done
+fi
 
 # iterate over all the directories in the tiled folder
 for d in $data_folder/segmented_point_clouds/tiled/*/; do
