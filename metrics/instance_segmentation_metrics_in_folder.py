@@ -1,3 +1,4 @@
+import csv
 import glob
 import os
 import argparse
@@ -125,12 +126,13 @@ class InstanceSegmentationMetricsInFolder():
    
         if self.output_folder_path is not None:
             # create the output folder path
-            save_to_csv_path = os.path.join(self.output_folder_path, 'mean_f1_score.csv')
-            # save the mean f1 score to a csv file
-            with open(save_to_csv_path, 'w') as f:
-                f.write('mean_f1_score\n')
-                f.write(str(mean_f1_score))
-
+            save_to_csv_path = os.path.join(self.output_folder_path, 'summary_metrics_all_plots.csv')
+            # save the mean metrics to a csv file
+            with open(save_to_csv_path, 'w') as csv_file:
+                writer = csv.writer(csv_file)
+                for key, value in mean_metrics.items():
+                    writer.writerow([key, value])
+                    
         if self.verbose:
             print('Mean F1 Score: {}'.format(mean_f1_score))
             # print the mean metrics

@@ -276,8 +276,8 @@ class InstanceSegmentationMetrics:
                 # find hight of the tree in the prediction
                 hight_of_tree_pred = (self.instance_segmented_las[self.Y_labels == label].z).max() - (self.instance_segmented_las[self.Y_labels == label].z).min()
                
-                # get resiudal of the hight of the tree in the prediction
-                residual_hight_of_tree_pred = hight_of_tree_gt - hight_of_tree_pred
+                # get abs resiudal of the hight of the tree in the prediction
+                residual_hight_of_tree_pred = abs(hight_of_tree_gt - hight_of_tree_pred)
 
                 # create tmp dict
                 tmp_dict = {
@@ -299,7 +299,7 @@ class InstanceSegmentationMetrics:
                 metric_dict[str(label)] = tmp_dict
             
         # list of interesting metrics 
-        interesting_parameters = ['true_positive', 'false_positive', 'false_negative', 'true_negative', 'precision', 'recall', 'f1_score', 'IoU']
+        interesting_parameters = ['precision', 'recall', 'f1_score', 'IoU', 'residual_hight(gt_minus_pred)']
 
         # weight the metrics by tree hight
         metric_dict_weighted_by_tree_hight = {}
@@ -350,10 +350,13 @@ class InstanceSegmentationMetrics:
             trees_correctly_predicted_IoU = set(trees_correctly_predicted_IoU)
 
             tree_level_metric = {
-                'true_positve (detection rate)': len(trees_correctly_predicted_IoU), 
-                'false_positve (commission)': len(trees_predicted - trees_correctly_predicted_IoU), 
-                'false_negative (omissions)': len(gt_trees - trees_predicted - trees_correctly_predicted_IoU), 
+                'true_positve (detection rate)': len(trees_correctly_predicted_IoU) / len(gt_trees), 
+                'false_positve (commission)': len(trees_predicted - trees_correctly_predicted_IoU) / len(gt_trees), 
+                'false_negative (omissions)': len(gt_trees - trees_predicted - trees_correctly_predicted_IoU) / len(gt_trees), 
                 'gt': len(gt_trees)}
+
+            # add tree level metrics to the metric_dict_mean
+            metric_dict_mean.update(tree_level_metric)
 
             if self.verbose:
                 print('Tree level metrics:')    
@@ -362,6 +365,8 @@ class InstanceSegmentationMetrics:
                 print(f'Trees correctly predicted with IoU > 0.5: {trees_correctly_predicted_IoU}')
 
                 print(tree_level_metric)
+
+            
 
         return metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean
 
