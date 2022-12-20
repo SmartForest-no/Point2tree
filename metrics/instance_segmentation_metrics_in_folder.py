@@ -96,8 +96,8 @@ class InstanceSegmentationMetricsInFolder():
         )
 
         # extract the metric_dict_list and f1_scores_weighted_list from the paralle_output
-        for metric_dict, f1_score_weighted in paralle_output:
-            metric_dict_list.append(metric_dict) #TODO: finish this
+        for metric_dict_mean, f1_score_weighted in paralle_output:
+            metric_dict_list.append(metric_dict_mean) 
             f1_scores_weighted_list.append(f1_score_weighted)
 
         # this is serial version of the above code
@@ -108,7 +108,20 @@ class InstanceSegmentationMetricsInFolder():
 
         # calculate the mean f1 score of weighted f1 scores
         mean_f1_score = sum(f1_scores_weighted_list) / len(f1_scores_weighted_list)
+        # calculate the mean metrics for all the elements in the metric_dict_list
+        # create a mean_metrics dictionary and initialize it with zeros
+        mean_metrics = {}
+        for metric_dict in metric_dict_list:
+            for key, value in metric_dict.items():
+                mean_metrics[key] = 0
 
+        for metric_dict in metric_dict_list:
+            for key, value in metric_dict.items():
+                mean_metrics[key] += value 
+
+        # devide the mean_metrics by the number of metric_dict_list
+        for key, value in mean_metrics.items():
+            mean_metrics[key] = value / len(metric_dict_list)
    
         if self.output_folder_path is not None:
             # create the output folder path
@@ -120,6 +133,8 @@ class InstanceSegmentationMetricsInFolder():
 
         if self.verbose:
             print('Mean F1 Score: {}'.format(mean_f1_score))
+            # print the mean metrics
+            print('Mean Metrics: {}'.format(mean_metrics))
 
         return mean_f1_score
 
@@ -160,7 +175,7 @@ class InstanceSegmentationMetricsInFolder():
             )
             metric_dict, metric_dict_weighted_by_tree_hight, metric_dict_mean = instance_segmentation_metrics.main()
             f1_score_weighted = metric_dict_mean['f1_score']
-        return metric_dict, f1_score_weighted
+        return metric_dict_mean, f1_score_weighted
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
