@@ -4,9 +4,7 @@ from joblib import Parallel, delayed
 import laspy
 from matplotlib import pyplot as plt
 import numpy as np
-# from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import KDTree
-from tqdm import tqdm
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, f1_score, precision_score, recall_score
 
 
@@ -47,41 +45,40 @@ class MetricSemSeg:
         # sort the list in place
         file_name_list_original.sort()
 
-        # get the list of the core names of the original point clouds
-        # file_name_list_original_core = []
-        # for file_name in file_name_list_original:
-        #     file_name_list_original_core.append(os.path.basename(file_name).split('.')[0])
+        # get the files which have the same core name as the original point clouds
+        file_name_list_original_core = []
+        for file_name in file_name_list_original:
+            file_name_list_original_core.append(os.path.basename(file_name).split('.')[0])
 
         # get list of the predicted point clouds
         file_name_list_predicted = []
         for file in os.listdir(self.pred_folder):
-            if file.endswith(".las"):
-                file_name_list_predicted.append(os.path.join(self.pred_folder, file))
+            # get files which have the same core name as the original point clouds and suffix of '.segmented'
+            if os.path.basename(file).split('.')[0] in file_name_list_original_core and os.path.basename(file).split('.')[1] == 'segmented':
+                print("processing file {}".format(file))
+                # check is the file is a las file
+                if file.endswith(".las"):
+                    file_name_list_predicted.append(os.path.join(self.pred_folder, file))
+                # check if the file is a ply file and there is no las file with the same core name
+                elif file.endswith(".ply") and (os.path.basename(file).split('.')[0] + '.segmented.las' not in os.listdir(self.pred_folder)):
+                    # if not convert it to las file
+                    file_name = os.path.join(self.pred_folder, file)
+                    file_name_las = os.path.basename(file).split('.')[0] + '.segmented.las'
+                    file_name_las = os.path.join(self.pred_folder, file_name_las)
+                    if self.verbose:
+                        print("converting {} to las file".format(file))
+                    os.system("pdal translate {} {} --writers.las.dataformat_id=3 --writers.las.extra_dims=all".format(file_name, file_name_las))
+                    file_name_list_predicted.append(file_name_las)
+
+        # remove double files
+        file_name_list_predicted = list(set(file_name_list_predicted))
 
         # sort the list in place
         file_name_list_predicted.sort()
 
         # check if the number of files in the two folders is the same
         if len(file_name_list_original) != len(file_name_list_predicted):
-            raise Exception('The number of files in the two folders is not the same.')
-
-        # get core names of ground truth point clouds
-        file_name_list_original_core = []
-        for file_name in file_name_list_original:
-            file_name_list_original_core.append(os.path.basename(file_name).split('.')[0])
-
-        # get core names of predicted point clouds
-        file_name_list_predicted_core = []
-        for file_name in file_name_list_predicted:
-            file_name_list_predicted_core.append(os.path.basename(file_name).split('.')[0])
-
-        # remove the suffix of '.segmented' from the predicted point clouds
-        file_name_list_predicted_core = [file_name.split('.')[0] for file_name in file_name_list_predicted_core]
-
-        # compare the two lists and check if they are the same
-        if file_name_list_original_core != file_name_list_predicted_core:
-            raise ValueError("The two lists of point clouds are not the same")
-
+            raise ValueError("The two folders do not have the same number of files")
 
         # zip the two lists
         file_name_list = list(zip(file_name_list_original, file_name_list_predicted))
@@ -166,7 +163,7 @@ class MetricSemSeg:
         labels_original_closest = labels_original[indices]
 
         # get the confusion matrix
-        conf_matrix = np.round(confusion_matrix(labels_original_closest, labels_predicted, normalize='false'), decimals=2)
+        conf_matrix = np.round(confusion_matrix(labels_original_closest, labels_predicted, normalize='true'), decimals=2)
 
         # if conf_matrix.shape[0] == 3 add diagonal elements to make it 4x4 at dimension 2
         if conf_matrix.shape[0] == 3:
@@ -187,7 +184,7 @@ class MetricSemSeg:
                 class_names = ['terrain', 'vegetation', 'CWD', 'stem']
             disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=class_names)
             disp.plot()
-            plt.savefig('confusion_matrix.png')
+            plt.savefig(file_name_original + '_confusion_matrix.png')
 
         # compute precision, recall and f1 score using sklearn.metrics 
         precision = precision_score(labels_original_closest, labels_predicted, average='weighted')
@@ -259,6 +256,16 @@ class MetricSemSeg:
 
         # compute the mean of the confusion matrix
         conf_matrix_mean = np.mean(conf_matrix_list, axis=0)
+
+        # save the confusion matrix
+        if self.plot_confusion_matrix:
+            if conf_matrix_mean.shape[0] == 3:
+                class_names = ['terrain', 'vegetation', 'stem']
+            elif conf_matrix_mean.shape[0] == 4:
+                class_names = ['terrain', 'vegetation', 'CWD', 'stem']
+            disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix_mean, display_labels=class_names)
+            disp.plot()
+            plt.savefig('confusion_matrix_mean.png')
 
         # compute the mean of the precision, recall and f1 score
         precision_mean = np.mean(precision_list)
