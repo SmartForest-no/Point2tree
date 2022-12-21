@@ -80,7 +80,7 @@ def merge_ply_files(data_folder, output_file='output_instance_segmented.ply'):
 
     # print where the file is saved
     logging.info("The file is saved in: " + os.path.join(data_folder, output_file))
-    logging.info("Merging was done for {} number of files".format(len(tags)))
+    logging.info("Merging was done for {} files".format(len(tags)))
 
     pipeline = pdal.Pipeline(json.dumps(data))
     pipeline.execute()

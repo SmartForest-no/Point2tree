@@ -131,6 +131,8 @@ class InstanceSegmentationMetricsInFolder():
             with open(save_to_csv_path, 'w') as csv_file:
                 writer = csv.writer(csv_file)
                 for key, value in mean_metrics.items():
+                    # round the value to 3 decimal places
+                    value = round(value, 3)
                     writer.writerow([key, value])
                     
         if self.verbose:
