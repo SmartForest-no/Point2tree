@@ -47,7 +47,6 @@ if __name__ == "__main__":
 
     parameters = dict(
         point_cloud_filename=args.point_cloud,
-        model_filename=args.model,
         # Adjust if needed
         plot_centre=None,  # [X, Y] Coordinates of the plot centre (metres). If "None", plot_centre is computed based on the point cloud bounding box.
         # Circular Plot options - Leave at 0 if not using.
@@ -80,6 +79,10 @@ if __name__ == "__main__":
     )
 
     parameters.update(other_parameters)
+    parameters["model_filename"] = args.model
+
+    # print path to model
+    print("Using model: {}".format(parameters["model_filename"]))
 
     FSCT(
         parameters=parameters,
