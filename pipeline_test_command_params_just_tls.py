@@ -36,7 +36,7 @@ def main(
 
     # get files for the sweep
     print("Getting files for the sweep")
-    cmd = "/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/bash_helper_scripts/get_terrestial_sem_seg_validation_after_sem_seg.sh"
+    cmd = "/home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/bash_helper_scripts/get_val_corrected_after_sem_seg_selected_files.sh"
     subprocess.run([cmd], shell=True)
 
     # define the arguments for all the parameters from the sweep configuration
