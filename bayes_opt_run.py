@@ -44,6 +44,20 @@ pbounds = {
     'add_leaves_edge_length': (0.2, 1.5)
 }
 
+# partially fixed params for faster optimization
+
+# pbounds = {
+#     'n_tiles': (3, 3),
+#     'slice_thickness': (0.25, 0.75), # important
+#     'find_stems_height': (1.6, 1.6), # 1.6
+#     'find_stems_thickness': (0.1, 1.0), # important
+#     'graph_maximum_cumulative_gap': (12.9, 12.9), # 12.9
+#     'add_leaves_voxel_length': (0.25, 0.25), # 0.25
+#     'find_stems_min_points': (50, 500), # important
+#     'graph_edge_length': (0.92, 0.92), # 0.92
+#     'add_leaves_edge_length': (0.85, 0.85) # 0.85
+# }
+
 optimizer = BayesianOptimization(
     f=bayes_opt_main,
     pbounds=pbounds,
@@ -52,12 +66,12 @@ optimizer = BayesianOptimization(
 )
 
 # load the logs
-load_logs(optimizer, logs=["./bayes_opt_run_logs.json"])
+# load_logs(optimizer, logs=["./our_model_opt.json"])
 
-logger = JSONLogger(path="./bayes_opt_run_logs_1.json")
+logger = JSONLogger(path="./our_model_non_cut_trees_4_files.json")
 optimizer.subscribe(Events.OPTIMIZATION_STEP, logger)
 
 optimizer.maximize(
-    init_points=1,
-    n_iter=100
+    init_points=5,
+    n_iter=200
 )

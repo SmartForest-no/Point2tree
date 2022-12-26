@@ -1,5 +1,6 @@
 import os
 import argparse
+from joblib import Parallel, delayed
 from matplotlib import use
 from tqdm import tqdm
 
@@ -78,8 +79,12 @@ class ConvertFilesInFolder(object):
             logging.info("Found {} files that can be converted.".format(len(file_paths)))
 
         # iterate over all files and convert them
-        for file_path in tqdm(file_paths):
-            self.convert_file(file_path)
+
+        # for file_path in tqdm(file_paths):
+        #     self.convert_file(file_path)
+
+        # use joblib to speed up the process
+        Parallel(n_jobs=-1)(delayed(self.convert_file)(file_path) for file_path in tqdm(file_paths))
         
         # print out the progress
         if self.verbose:
