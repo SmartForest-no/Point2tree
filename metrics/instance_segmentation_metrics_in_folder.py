@@ -160,7 +160,7 @@ class InstanceSegmentationMetricsInFolder():
                 AttachLabelsToLasFile(
                     gt_las_file_path,
                     target_las_file_path,
-                    update_las_file_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '_updated.las'),
+                    update_las_file_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '.las'),
                     gt_label_name='treeID',
                     target_label_name='treeID',
                     verbose=self.verbose
