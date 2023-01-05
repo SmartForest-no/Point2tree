@@ -9,6 +9,9 @@ from metrics.instance_segmentation_metrics import InstanceSegmentationMetrics
 from nibio_postprocessing.attach_labels_to_las_file import AttachLabelsToLasFile
 
 class InstanceSegmentationMetricsInFolder():
+    GT_LABEL_NAME = 'treeID'
+    TARGET_LABEL_NAME = 'instance_nr'
+
     def __init__(
         self,
         gt_las_folder_path,
@@ -161,8 +164,8 @@ class InstanceSegmentationMetricsInFolder():
                     gt_las_file_path,
                     target_las_file_path,
                     update_las_file_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '.las'),
-                    gt_label_name='treeID',
-                    target_label_name='treeID',
+                    gt_label_name=self.GT_LABEL_NAME,
+                    target_label_name=self.GT_LABEL_NAME,
                     verbose=self.verbose
                 ).main()
 

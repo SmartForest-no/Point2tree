@@ -9,6 +9,8 @@ from sklearn.neighbors import KDTree
 logging.basicConfig(level=logging.INFO)
 
 class InstanceSegmentationMetrics:
+    GT_LABEL_NAME = 'treeID'  #GT_LABEL_NAME = 'StemID'
+    TARGET_LABEL_NAME = 'instance_nr'
     def __init__(
         self, 
         input_file_path, 
@@ -27,13 +29,16 @@ class InstanceSegmentationMetrics:
         self.input_las = laspy.read(self.input_file_path)
         self.instance_segmented_las = laspy.read(self.instance_segmented_file_path)
 
-        self.skip_flag = self.check_if_labels_exist()
+        self.skip_flag = self.check_if_labels_exist(
+            X_label=self.GT_LABEL_NAME,
+            Y_label=self.TARGET_LABEL_NAME
+            )
 
         if not self.skip_flag:
             # get labels from input las file
-            self.X_labels = self.input_las.treeID.astype(int) #TODO: generalize this to other labels
+            self.X_labels = self.input_las[self.GT_LABEL_NAME].astype(int) 
             # get labels from instance segmented las file
-            self.Y_labels = self.instance_segmented_las.instance_nr.astype(int) #TODO: generalize this to other labels
+            self.Y_labels = self.instance_segmented_las[self.TARGET_LABEL_NAME].astype(int) 
             # if self.remove_ground:
             #     # the labeling starts from 0, so we need to remove the ground
             #     self.Y_labels += 1
@@ -126,12 +131,12 @@ class InstanceSegmentationMetrics:
     # define a function that finds class in input_file with the most points
     def find_dominant_classes_in_gt(self, input_file):
         # get the unique labels
-        unique_labels = np.unique(input_file.treeID).astype(int)
+        unique_labels = np.unique(input_file[self.GT_LABEL_NAME]).astype(int)
         # create a dictionary
         tmp_dict = {}
         for label in unique_labels:
             # get the indices of input_file.treeID == label
-            ind_label = np.where(input_file.treeID == label)[0]
+            ind_label = np.where(input_file[self.GT_LABEL_NAME] == label)[0]
             # put the number of points to the tmp_dict
             tmp_dict[str(label)] = ind_label.shape[0]
         # sort tmp_dict by the number of points
@@ -331,7 +336,7 @@ class InstanceSegmentationMetrics:
         # compute tree level metrics
         if metric_dict:
             # get the number of trees in the ground truth
-            gt_trees = np.unique(self.input_las.treeID)
+            gt_trees = np.unique(self.input_las[self.GT_LABEL_NAME])
 
             # remove 0 from gt_trees
             gt_trees = gt_trees[gt_trees != 0]
