@@ -6,7 +6,7 @@ from joblib import Parallel, delayed
 import laspy
 
 from metrics.instance_segmentation_metrics import InstanceSegmentationMetrics
-from nibio_postprocessing.attach_labels_to_las_file import AttachLabelsToLasFile
+from nibio_postprocessing.attach_labels_to_las_file_pred2gt import AttachLabelsToLasFilePred2Gt
 
 class InstanceSegmentationMetricsInFolder():
     GT_LABEL_NAME = 'treeID'
@@ -160,12 +160,12 @@ class InstanceSegmentationMetricsInFolder():
                 # create the output folder path
                 save_to_csv_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '.csv')
                 # attach labels to the las file
-                AttachLabelsToLasFile(
+                AttachLabelsToLasFilePred2Gt(
                     gt_las_file_path,
                     target_las_file_path,
                     update_las_file_path = os.path.join(self.output_folder_path, gt_las_file_core_name + '.las'),
                     gt_label_name=self.GT_LABEL_NAME,
-                    target_label_name=self.GT_LABEL_NAME,
+                    target_label_name=self.TARGET_LABEL_NAME,
                     verbose=self.verbose
                 ).main()
 

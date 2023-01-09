@@ -7,7 +7,7 @@ from sklearn.neighbors import KDTree
 import logging
 logging.basicConfig(level=logging.INFO)
 
-class AttachLabelsToLasFile():
+class AttachLabelsToLasFileGt2Pred():
     def __init__(
         self, 
         gt_las_file_path, 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # create an instance of AttachLabelsToLasFile class
-    attach_labels_to_las_file = AttachLabelsToLasFile(
+    attach_labels_to_las_file = AttachLabelsToLasFileGt2Pred(
         gt_las_file_path=args.gt_las_file_path,
         target_las_file_path=args.target_las_file_path,
         update_las_file_path=args.update_las_file_path,

@@ -328,10 +328,7 @@ class InstanceSegmentationMetrics:
         # do this if there is at least one label
         if metric_dict:
             for label in metric_dict.keys():
-                print('label: ', label)
                 for parameter in interesting_parameters:
-                    print('parameter: ', parameter)
-                    print('metric_dict[label][parameter]: ', metric_dict[label][parameter])
                     metric_dict_weighted_by_tree_hight[parameter] += metric_dict[label]['high_of_tree_gt'] * metric_dict[label][parameter]
             # divide by the sum of the hights of the trees
             for parameter in interesting_parameters:

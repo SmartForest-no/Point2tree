@@ -8,7 +8,7 @@ from tqdm import tqdm
 import laspy
 
 from nibio_preprocessing.pdal_subsampling_center_nn import PDALSubsamplingCenterNN
-from nibio_postprocessing.attach_labels_to_las_file import AttachLabelsToLasFile
+from nibio_postprocessing.attach_labels_to_las_file_gt2pred import AttachLabelsToLasFileGt2Pred
 
 class PDALSubsamplingCenterNNFolders:
     def __init__(self, input_folder, output_folder, voxel_size, verbose):
@@ -62,7 +62,7 @@ class PDALSubsamplingCenterNNFolders:
         # read input files and output files one by one using laspy
         for input_file, output_file in tqdm(zip(input_files, output_files)):
             # use AttachLabelsToLasFile to transfer extra fields
-            transfer = AttachLabelsToLasFile(
+            transfer = AttachLabelsToLasFileGt2Pred(
                 gt_las_file_path=input_file,
                 target_las_file_path=output_file,
                 update_las_file_path=output_file,
@@ -73,7 +73,7 @@ class PDALSubsamplingCenterNNFolders:
             transfer.main()
 
             # transfer instance segmentation labels
-            transfer = AttachLabelsToLasFile(
+            transfer = AttachLabelsToLasFileGt2Pred(
                 gt_las_file_path=input_file,
                 target_las_file_path=output_file,
                 update_las_file_path=output_file,
