@@ -16,3 +16,4 @@ sample_data/segmented_point_clouds/*
 *.dat
 *.json
 *.png
+*.txt
