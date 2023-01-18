@@ -21,7 +21,7 @@ def main(path_to_config_file):
     if not os.path.exists(config["general"]["output_folder"]):
         os.mkdir(config["general"]["output_folder"])
 
-    ### sematic segmentation section
+    ### sematic segmentation section ###
     if config["general"]["run_sematic_segmentation"]:
         logger.info("Running semantic segmentation")
         sem_seg_command = config["semantic_segmentation_params"]["sematic_segmentation_script"]
@@ -44,11 +44,34 @@ def main(path_to_config_file):
         logging.info("Running semantic segmentation with the arguments")
         RunCommandBash(sem_seg_command, sem_seg_args)()
 
-
+    ### instance segmentation section ###
     if config["general"]["run_instance_segmentation"]:
         logger.info("Running instance segmentation")
-    else:
-        logger.info("Not running instance segmentation")
+        ins_seg_command = config["instance_segmentation_params"]["instance_segmentation_script"]
+
+        # print the instance segmentation parameters
+        for key, value in config["instance_segmentation_params"].items():
+            logger.info(key + ": " + str(value))
+
+        # read all the parameters from the config file for the instance segmentation
+        ins_seg_args = []
+
+        ins_seg_args.extend([
+        "-d", str(config["general"]["input_folder"]),
+        "-n", str(config["instance_segmentation_params"]["n_tiles"]),
+        "-s", str(config["instance_segmentation_params"]["slice_thickness"]),
+        "-h", str(config["instance_segmentation_params"]["find_stems_height"]),
+        "-t", str(config["instance_segmentation_params"]["find_stems_thickness"]),
+        "-g", str(config["instance_segmentation_params"]["graph_maximum_cumulative_gap"]),
+        "-l", str(config["instance_segmentation_params"]["add_leaves_voxel_length"]),
+        "-m", str(config["instance_segmentation_params"]["find_stems_min_points"]),
+        "-o", str(config["instance_segmentation_params"]["graph_edge_length"]),
+        "-p", str(config["instance_segmentation_params"]["add_leaves_edge_length"])
+        ])
+
+        # run the command with the arguments
+        logging.info("Running instance segmentation with the arguments")
+        RunCommandBash(ins_seg_command, ins_seg_args)()
 
     # do cleaning up folders
     if config["general"]["clean_output_folder"]:

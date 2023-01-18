@@ -1,10 +1,25 @@
 general:
-  input_folder: 'some_path'
-  output_folder: 'some_path'
+  input_folder: './maciek'
+  output_folder: './maciek_results'
+  clean_output_folder: true
   run_sematic_segmentation: true
-  run_instance_segmentation: false
+  run_instance_segmentation: true
 label_formats:
   label_for_instances_in_gt: 'treeID'
   label_for_instances_in_predicted: 'instance_nr'
 semantic_segmentation_params:
-  first: 'some'
+  sematic_segmentation_script: './run_bash_scripts/sem_seg_sean.sh'
+  tile_size: 10 # tile size in meters
+  min_density: 100 # minimum density of points in a tile(used for removing small tiles)
+  remove_small_tiles: 1 # 1: remove small tiles, 0: not remove small tiles
+instance_segmentation_params:
+  instance_segmentation_script: './run_bash_scripts/tls.sh' 
+  n_tiles: 3
+  slice_thickness: 0.5
+  find_stems_height: 1.5
+  find_stems_thickness: 0.5
+  graph_maximum_cumulative_gap: 3
+  add_leaves_voxel_length: 0.5
+  find_stems_min_points: 50
+  graph_edge_length: 1.0
+  add_leaves_edge_length: 1.0
