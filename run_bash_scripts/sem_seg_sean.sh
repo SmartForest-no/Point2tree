@@ -7,6 +7,7 @@ CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
 
 # Parameters for the semetnic segmentation
 data_folder="" # path to the folder containing the data
+checkpoint_model_path="./fsct/model/model.pth"
 tile_size=10 # tile size in meters
 min_density=75 # minimum density of points in a tile(used for removing small tiles)
 remove_small_tiles=0 # 1: remove small tiles, 0: not remove small tiles
@@ -16,9 +17,11 @@ remove_small_tiles=0 # 1: remove small tiles, 0: not remove small tiles
 # extract tiling parameters as command line arguments with the same default values
 
 # add remove_small_tiles parameter
-while getopts "d:t:m:z:" opt; do
+while getopts "d:c:t:m:z:" opt; do
   case $opt in
     d) data_folder="$OPTARG"
+    ;;
+    c) checkpoint_model_path="$OPTARG"
     ;;
     t) tile_size="$OPTARG"
     ;;
@@ -140,7 +143,7 @@ for d in $data_folder/segmented_point_clouds/tiled/*/; do
     for f in $d/*.ply; do
         echo "Processing $f file..."
         python sean_sem_seg/run_single_file.py \
-        --model /home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/fsct/model/model.pth \
+        --model $checkpoint_model_path \
         --point-cloud $f \
         --batch_size 10 \
         --odir $d \

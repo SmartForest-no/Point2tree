@@ -9,6 +9,7 @@ label_formats:
   label_for_instances_in_predicted: 'instance_nr'
 semantic_segmentation_params:
   sematic_segmentation_script: './run_bash_scripts/sem_seg_sean.sh'
+  checkpoint_model_path: './fsct/model/model.pth'
   tile_size: 10 # tile size in meters
   min_density: 100 # minimum density of points in a tile(used for removing small tiles)
   remove_small_tiles: 1 # 1: remove small tiles, 0: not remove small tiles

@@ -35,6 +35,7 @@ def main(path_to_config_file):
 
         sem_seg_args.extend([
             "-d", str(config["general"]["input_folder"]),
+            "-c", str(config["semantic_segmentation_params"]["checkpoint_model_path"]),
             "-t", str(config["semantic_segmentation_params"]["tile_size"]),
             "-m", str(config["semantic_segmentation_params"]["min_density"]),
             "-z", str(config["semantic_segmentation_params"]["remove_small_tiles"])
