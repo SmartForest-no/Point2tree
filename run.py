@@ -109,6 +109,12 @@ def main(path_to_config_file):
         for file in las_segmented_files:
             os.system("cp {} {}".format(file, config["general"]["output_folder"]))
 
+    ### if both semantic and instance segmentation are run transfer data to the output folder
+    if config["general"]["run_sematic_segmentation"] and config["general"]["run_instance_segmentation"]:
+        source_folder = os.path.join(config["general"]["input_folder"], "results")
+        # copy all the files and folders from the source folder to the output folder
+        os.system("cp -r {} {}".format(source_folder + '/*', config["general"]["output_folder"]))
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Run the application in a production environment.')
     parser.add_argument("--path_to_config_file", type=str, default="./config/config.yaml")
