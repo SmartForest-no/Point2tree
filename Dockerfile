@@ -1,64 +1,16 @@
 FROM nvidia/cuda:11.2.1-cudnn8-runtime-ubuntu20.04
 
-RUN ln -fs /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    language-pack-en-base \
-    openssh-server \
-    openssh-client \
-    python3.6 \
-    python3-pip \
-    python3-setuptools \
-    ssh \
-    curl \
-    sudo \
-    vim \
-    wget \
-    less \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libsndfile1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && python3 -m pip install --no-cache-dir --upgrade \
-    autopep8 \
-    doc8 \
-    docutils \
-    ipython \
-    pip \
-    pylint \
-    pytest \
-    rope \
-    setuptools \
-    wheel \
-    torch \
-    tqdm \
-    pandas
-    
-# Create non-root user
-ARG UID=1000
-ARG GID=1000
-ARG USERNAME=nibio
-ENV HOME /home/${USERNAME}
-
-RUN groupadd -g ${GID} ${USERNAME} \
-    && useradd -ms /bin/bash -u ${UID} -g ${GID} -G sudo ${USERNAME} \
-    && echo "${USERNAME}:${USERNAME}" | chpasswd 
-
-COPY ./check_print.py $HOME
-
-#USER $USERNAME
-WORKDIR $HOME
-
 # install conda
 ARG UBUNTU_VER=20.04
 ARG CONDA_VER=latest
 ARG OS_TYPE=x86_64
 
-RUN mkdir conda_installation && cd conda_installation
-RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
-RUN bash Miniconda3-latest-Linux-x86_64.sh -p /miniconda -b
+RUN apt-get update && apt-get install -y --no-install-recommends curl
+
+RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh" && \
+    bash Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh -p /miniconda -b && \
+    rm Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh 
+
 RUN /miniconda/bin/conda update conda 
 
 RUN /miniconda/bin/conda init bash
@@ -70,6 +22,15 @@ RUN echo "conda activate pdal-env" >> ~/.bashrc
 
 RUN conda install -c conda-forge pdal python-pdal
 
-#CMD ["echo", "'just test print bash'" ]
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache -r /app/requirements.txt
 
-CMD ["python3", "check_print.py" ]
+COPY . /app
+
+ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run.py"]
+
+WORKDIR /app
+
+CMD ["--help" ]
+
+
