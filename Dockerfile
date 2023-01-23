@@ -5,7 +5,17 @@ ARG UBUNTU_VER=20.04
 ARG CONDA_VER=latest
 ARG OS_TYPE=x86_64
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    sudo \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libsndfile1 \
+    libtiff5 \
+    && rm -rf /var/lib/apt/lists/* 
+
 
 RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh" && \
     bash Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh -p /miniconda -b && \
@@ -20,17 +30,19 @@ SHELL ["/miniconda/bin/conda", "run", "-n", "pdal-env", "/bin/bash", "-c"]
 
 RUN echo "conda activate pdal-env" >> ~/.bashrc
 
-RUN conda install -c conda-forge pdal python-pdal
+RUN conda install -c conda-forge pdal==2.4.3 python-pdal==3.1.2
 
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache -r /app/requirements.txt
+RUN pip install parse oci ocifs
+
+COPY requirements.txt app/requirements.txt
+RUN pip install --no-cache -r app/requirements.txt
 
 COPY . /app
 
-ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run.py"]
+# ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run_oracle_wrapper.py"]
 
 WORKDIR /app
 
-CMD ["--help" ]
+# CMD ["--help" ]
 
 

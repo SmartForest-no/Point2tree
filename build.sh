@@ -1,3 +1,3 @@
 #/bin/sh
 
-docker build -t nibio/cuda-vscode-conda:latest .
+docker build -t nibio/pc-geoslam-oracle:latest .
