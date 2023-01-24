@@ -39,9 +39,10 @@ RUN pip install --no-cache -r app/requirements.txt
 
 COPY . /app
 
-# ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run_oracle_wrapper.py"]
-
 WORKDIR /app
+
+ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run_oracle_wrapper.py"]
+
 
 # CMD ["--help" ]
 
