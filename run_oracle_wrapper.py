@@ -60,6 +60,20 @@ def run_oracle_wrapper(path_to_config_file):
     # run the main function
     main(path_to_config_file)
 
+    # get list of files in the output folder
+    list_of_files = os.listdir(config_flow_params['general']['output_folder'])
+
+    # save files to the output bucket 'bucket_lidar_data' in the subfolder 'output'
+    for file in list_of_files:
+        # get the full path of the file
+        path_to_file = config_flow_params['general']['output_folder'] + '/' + file
+
+        # get the file name
+        file_name = file
+
+        # upload the file to the bucket
+        client.put_object(namespace, bucket_name, 'output/' + file_name, io.open(path_to_file, 'rb'))
+
 if __name__ == '__main__':
     # use argparse to get the path to the config file
     parser = argparse.ArgumentParser()
