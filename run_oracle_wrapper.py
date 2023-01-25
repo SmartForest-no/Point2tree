@@ -8,6 +8,7 @@ import sys
 import json
 import shutil
 import yaml
+from urllib.parse import urlparse
 from pathlib import Path
 from oci.config import validate_config
 from oci.object_storage import ObjectStorageClient
@@ -24,15 +25,24 @@ def run_oracle_wrapper(path_to_config_file):
     # create the client
     client = ObjectStorageClient(config)
 
-    # get the namespace
-    namespace = client.get_namespace().data
+    # read system environment variables
+    input_location = os.environ['OBJ_INPUT_LOCATION']
 
-    # get the bucket name
-    bucket_name = 'bucket_lidar_data'
+    if input_location is not None:
+        print('Taking the input from the location ' + input_location)
+        parsed_url = urlparse(input_location)
+        input_folder_in_bucket = parsed_url.path[1:]
+        bucket_name = parsed_url.netloc.split('@')[0]
+        namespace = parsed_url.netloc.split('@')[1]
 
-    # folder name inside the bucket
-
-    input_folder_in_bucket = 'geoslam'
+    else:
+        print('Taking the input from the default location')
+        # get the namespace
+        namespace = client.get_namespace().data
+        # get the bucket name
+        bucket_name = 'bucket_lidar_data'
+        # folder name inside the bucket
+        input_folder_in_bucket = 'geoslam'
 
     # read the config file from config folder
     with open(path_to_config_file) as f:
