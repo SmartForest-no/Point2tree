@@ -30,30 +30,43 @@ def run_oracle_wrapper(path_to_config_file):
     # get the bucket name
     bucket_name = 'bucket_lidar_data'
 
-    # get the object name
-    object_name = './geoslam/plot72_tile_-25_-25.las'
+    # folder name inside the bucket
 
-    # get the object
-    file = client.get_object(namespace, bucket_name, object_name)
+    input_folder_in_bucket = 'geoslam'
 
-    # write the object to a file
-    with open('plot_from_bucket.las', 'wb') as f:
-        for chunk in file.data.raw.stream(1024 * 1024, decode_content=False):
-            f.write(chunk)
-
-
-   # read the config file from config folder
+    # read the config file from config folder
     with open(path_to_config_file) as f:
         config_flow_params = yaml.load(f, Loader=yaml.FullLoader)
+
+    # copy all files from the bucket to the input folder
+    # get the list of objects in the bucket
+    objects = client.list_objects(namespace, bucket_name).data.objects
 
     # create the input folder if it does not exist
     if not os.path.exists(config_flow_params['general']['input_folder']):
         os.mkdir(config_flow_params['general']['input_folder'])
 
-    # move the file to the input folder using shutil if it does not exist
-    if not os.path.exists(config_flow_params['general']['input_folder'] + '/plot_from_bucket.las'):
-        shutil.move('plot_from_bucket.las', config_flow_params['general']['input_folder'])
+    # download the files from the bucket to the input folder
+    for item in objects:
+        if item.name.split('/')[0] == input_folder_in_bucket:
+            if not (item.name.split('/')[1] == ''):
+                object_name = item.name.split('/')[1]
 
+                print('Downloading the file ' + object_name + ' from the bucket ' + bucket_name)
+                path_to_object = os.path.join(input_folder_in_bucket, object_name)
+                # get the object
+                file = client.get_object(namespace, bucket_name, path_to_object)
+
+                # write the object to a file
+                with open(object_name, 'wb') as f:
+                    for chunk in file.data.raw.stream(1024 * 1024, decode_content=False):
+                        f.write(chunk)
+
+                # check if the file already exists in the input folder and delete it if it does
+                if os.path.exists(config_flow_params['general']['input_folder'] + '/' + object_name):
+                    os.remove(config_flow_params['general']['input_folder'] + '/' + object_name)
+                # move the file to the input folder and overwrite if it already exists
+                shutil.move(object_name, config_flow_params['general']['input_folder'])
 
     from run import main
 
@@ -81,5 +94,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # run the main function
+    print('Running the main function in run_oracle_wrapper.py')
     run_oracle_wrapper(args.path_to_config_file)
 
