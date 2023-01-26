@@ -102,19 +102,30 @@ def run_oracle_wrapper(path_to_config_file):
     # run the main function
     main(path_to_config_file)
 
+    # instance segmentation is set to true
+    if config_flow_params['general']['run_instance_segmentation']:
+        path_to_the_output_folder = os.path.join(config_flow_params['general']['output_folder'], 'instance_segmented_point_clouds')
+    else:
+        path_to_the_output_folder = config_flow_params['general']['output_folder']
+
     # get list of files in the output folder
-    list_of_files = os.listdir(config_flow_params['general']['output_folder'])
+    list_of_files = os.listdir(path_to_the_output_folder)
 
     # save files to the output bucket 'bucket_lidar_data' in the subfolder 'output'
     for file in list_of_files:
         # get the full path of the file
-        path_to_file = config_flow_params['general']['output_folder'] + '/' + file
+        path_to_file = path_to_the_output_folder + '/' + file
 
         # get the file name
         file_name = file
 
         # upload the file to the bucket
-        client.put_object(output_namespace, output_bucket_name, os.path.join(output_folder_in_bucket, file_name), io.open(path_to_file, 'rb'))
+        client.put_object(
+            output_namespace, 
+            output_bucket_name, 
+            os.path.join(output_folder_in_bucket, file_name), 
+            io.open(path_to_file, 'rb')
+            )
 
 if __name__ == '__main__':
     # use argparse to get the path to the config file
