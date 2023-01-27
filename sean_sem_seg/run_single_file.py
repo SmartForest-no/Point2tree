@@ -98,7 +98,10 @@ if __name__ == "__main__":
 
     # copy the output "segmented_cleaned.las" to the output directory
     
-    results_dir_name = args.point_cloud.split('.')[0] + '_FSCT_output'
+    # results_dir_name = args.point_cloud.split('.')[0] + '_FSCT_output'
+    dir_core_name = os.path.dirname(args.point_cloud)
+    file_name = os.path.basename(args.point_cloud).split('.')[0]
+    results_dir_name = os.path.join(dir_core_name, file_name + '_FSCT_output')
 
     print("Copying results to output directory.")
     shutil.copy(os.path.join(results_dir_name, "segmented_cleaned.las"), args.odir)

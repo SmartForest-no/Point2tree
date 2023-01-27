@@ -3,9 +3,10 @@
 ############################ parameters #################################################
 # General parameters
 CLEAR_INPUT_FOLDER=1  # 1: clear input folder, 0: not clear input folder
-CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
+CONDA_ENV="pdal-env" # conda environment for running the pipeline
 
 # Tiling parameters
+data_folder="" # path to the folder containing the data
 N_TILES=3
 SLICE_THICKNESS=0.5
 FIND_STEMS_HEIGHT=1.5
@@ -13,8 +14,67 @@ FIND_STEMS_THICKNESS=0.5
 GRAPH_MAXIMUM_CUMULATIVE_GAP=3
 ADD_LEAVES_VOXEL_LENGTH=0.5
 FIND_STEMS_MIN_POINTS=50
+GRAPH_EDGE_LENGTH=1.0
+ADD_LEAVES_EDGE_LENGTH=1.0
+
 ############################# end of parameters declaration ############################
 
+# extract tiling parameters as command line arguments with the same default values
+while getopts "d:n:s:h:t:g:l:m:o:p:" opt; do
+  case $opt in
+    d) data_folder="$OPTARG"
+    ;;
+    n) N_TILES="$OPTARG"
+    ;;
+    s) SLICE_THICKNESS="$OPTARG"
+    ;;
+    h) FIND_STEMS_HEIGHT="$OPTARG"
+    ;;
+    t) FIND_STEMS_THICKNESS="$OPTARG"
+    ;;
+    g) GRAPH_MAXIMUM_CUMULATIVE_GAP="$OPTARG"
+    ;;
+    l) ADD_LEAVES_VOXEL_LENGTH="$OPTARG"
+    ;;
+    m) FIND_STEMS_MIN_POINTS="$OPTARG"
+    ;;
+    o) GRAPH_EDGE_LENGTH="$OPTARG"
+    ;;
+    p) ADD_LEAVES_EDGE_LENGTH="$OPTARG"
+    ;;
+    \?) echo "Invalid option -$OPTARG" >&2
+    ;;
+  esac
+done
+
+# print the letters to choose from in getopts
+echo "      The list of letters for the parameters:"
+echo "d: data_folder"
+echo "n: N_TILES"
+echo "s: SLICE_THICKNESS"
+echo "h: FIND_STEMS_HEIGHT"
+echo "t: FIND_STEMS_THICKNESS"
+echo "g: GRAPH_MAXIMUM_CUMULATIVE_GAP"
+echo "l: ADD_LEAVES_VOXEL_LENGTH"
+echo "m: FIND_STEMS_MIN_POINTS"
+echo "o: GRAPH_EDGE_LENGTH"
+echo "p: ADD_LEAVES_EDGE_LENGTH"
+
+echo " "
+# print values of the parameters 
+echo "      The values of the parameters:"
+echo "data_folder: $data_folder"
+echo "N_TILES: $N_TILES"
+echo "SLICE_THICKNESS: $SLICE_THICKNESS"
+echo "FIND_STEMS_HEIGHT: $FIND_STEMS_HEIGHT"
+echo "FIND_STEMS_THICKNESS: $FIND_STEMS_THICKNESS"
+echo "GRAPH_MAXIMUM_CUMULATIVE_GAP: $GRAPH_MAXIMUM_CUMULATIVE_GAP"
+echo "ADD_LEAVES_VOXEL_LENGTH: $ADD_LEAVES_VOXEL_LENGTH"
+echo "FIND_STEMS_MIN_POINTS: $FIND_STEMS_MIN_POINTS"
+echo "GRAPH_EDGE_LENGTH: $GRAPH_EDGE_LENGTH"
+echo "ADD_LEAVES_EDGE_LENGTH: $ADD_LEAVES_EDGE_LENGTH"
+
+# exit 0
 
 # Do the environment setup
 # check if PYTHONPATH is set to the current directory
@@ -34,132 +94,13 @@ if [ "$CONDA_DEFAULT_ENV" != "$CONDA_ENV" ]; then
     exit 1
 fi
 
-data_folder=$1
-
 # if no input folder is provided, case a message and exit
 if [ -z "$data_folder" ]
 then
+    echo " "
     echo "No input folder provided, please provide the input folder as a command line argument"
     exit 1
 fi
-
-# clear input folder if CLEAR_INPUT_FOLDER is set to 1
-if [ $CLEAR_INPUT_FOLDER -eq 1 ]
-then
-    # delete all the files and folders except the ply, las and laz files in the input folder
-    echo "Clearing input folder"
-    find $data_folder/ -type f ! -name '*.ply' ! -name '*.las' ! -name '*.laz' -delete # delete all the files except the ply and las files
-    find $data_folder/* -type d -exec rm -rf {} + # delete all the folders in the input folder
-    echo "Removed all the files and folders except the ply and las files in the input folder"
-fi
-
-# check if there are las and laz files in the input folder
-count_las=`ls -1 $data_folder/*.las 2>/dev/null | wc -l`
-count_laz=`ls -1 $data_folder/*.laz 2>/dev/null | wc -l`
-
-count=$(($count_las + $count_laz))
-
-if [ $count != 0 ]; then
-    echo "$count las files found in the input folder good to go with!"
-else
-    echo "No las or laz files found in the input folder."
-    echo "All files in the input folder should have *.las or *.laz extension."
-    exit 1
-fi
-
-# do the conversion from laz to las if there are laz files in place (this is need for metrics calculation)
-python nibio_preprocessing/convert_files_in_folder.py --input_folder $data_folder --output_folder $data_folder --out_file_type las --in_place --verbose
-
-# do the conversion to ply
-python nibio_preprocessing/convert_files_in_folder.py --input_folder $data_folder --output_folder $data_folder --out_file_type ply --verbose
-
-# clear input folder if CLEAR_INPUT_FOLDER is set to 1
-if [ $CLEAR_INPUT_FOLDER -eq 1 ]
-then
-    # delete all the files and folders except the ply and las files in the input folder
-    echo "Clearing input folder"
-    find $data_folder/ -type f ! -name '*.ply' ! -name '*.las' -delete # delete all the files except the ply and las files
-    find $data_folder/* -type d -exec rm -rf {} + # delete all the folders in the input folder
-    echo "Removed all the files and folders except the ply and las files in the input folder"
-fi
-
-# move the output of the first step to the input folder of the second step
-mkdir -p $data_folder/segmented_point_clouds
-
-# move all .segmented.ply files to the segmented_point_clouds folder if they are in the input folder
-find $data_folder/ -type f -name '*.ply' -exec mv {} $data_folder/segmented_point_clouds/ \;
-
-# do the tiling and tile index generation
-echo "Tiling and tile index generation"
-python nibio_preprocessing/tiling.py \
--i $data_folder/segmented_point_clouds/ \
--o $data_folder/segmented_point_clouds/tiled \
---tile_size 10
-
-# remove small tiles using nibio_preprocessing/remove_small_tiles.py
-for d in $data_folder/segmented_point_clouds/tiled/*; do
-    echo "Removing small tiles from $d"
-    python nibio_preprocessing/remove_small_tiles.py \
-    --dir $d \
-    --tile_index $d/tile_index.dat \
-    --min_density 75 \
-    --verbose
-done
-
-# iterate over all the directories in the tiled folder
-for d in $data_folder/segmented_point_clouds/tiled/*/; do
-    for f in $d/*.ply; do
-        echo "Processing $f file..."
-        python fsct/run.py \
-        --model /home/nibio/mutable-outside-world/code/instance_segmentation_classic/fsct/model/model.pth \
-        --point-cloud $f \
-        --batch_size 5 \
-        --odir $d \
-        --verbose \
-        # --tile-index $d/tile_index.dat \
-        # --buffer 2
-    done
-done
-
-# remove all the files in the tiled subfolders except the *segmented.ply and tile_index.dat files
-find $data_folder/segmented_point_clouds/tiled/*/ -type f ! -name '*segmented.ply' ! -name 'tile_index.dat' -delete # delete all the files except the segmented.ply files
-# delete all the folders in the tiled subfolders
-find $data_folder/segmented_point_clouds/tiled/*/* -type d -exec rm -rf {} +
-
-# # merge the segmented point clouds
-echo "Merging the segmented point clouds"
-# iterate over all the directories in the tiled folder
-for d in $data_folder/segmented_point_clouds/tiled/*/; do
-    # get a base name of the directory
-    base_name=$(basename $d)
-    # create a name for the merged file
-    merged_file_name=$data_folder/segmented_point_clouds/$base_name.segmented.ply
-    python nibio_preprocessing/merging_and_labeling.py \
-    --data_folder $d \
-    --output_file $merged_file_name \
-    --only_merging
-done
-
-# rename all the segmented.ply files to .ply in the tiled subfolders
-for file in $data_folder/segmented_point_clouds/tiled/*/*; do
-    # skip if the file is not a ply file
-    if [[ $file != *.ply ]]; then
-        continue
-    fi
-    mv -- "$file" "${file%.segmented.ply}.ply"
-done
-
-# rename all the folder in the tiled subfolders to .segmented suffix
-for d in $data_folder/segmented_point_clouds/tiled/*; do
-    echo "Renaming $d to ${d%.segmented}"
-    # mv "$d" "${d%.segmented}"
-    mv $d{,.segmented}
-done
-
-
-# create folder for the output of the second step
-
-mkdir -p $data_folder/instance_segmented_point_clouds
 
 # Do the instances and iterate over all the segmented point clouds
 for segmented_point_cloud in $data_folder/segmented_point_clouds/*.segmented.ply; do
@@ -192,7 +133,9 @@ for segmented_point_cloud in $data_folder/segmented_point_clouds/*.segmented.ply
         --graph-maximum-cumulative-gap $GRAPH_MAXIMUM_CUMULATIVE_GAP \
         --save-diameter-class \
         --ignore-missing-tiles \
-        --find-stems-min-points $FIND_STEMS_MIN_POINTS
+        --find-stems-min-points $FIND_STEMS_MIN_POINTS \
+        --graph-edge-length $GRAPH_EDGE_LENGTH \
+        --add-leaves-edge-length $ADD_LEAVES_EDGE_LENGTH 
     done
 done
 
@@ -257,8 +200,6 @@ for segmented_point_cloud_in_ply in $data_folder/results/segmented_point_clouds/
     --writers.las.dataformat_id=3 \
     --writers.las.extra_dims=all
 done
-
-python nibio_preprocessing/add_ground_to_inst_seg_folders.py --sem_seg_folder sample_playground/results/segmented_point_clouds/ --inst_seg_folder sample_playground/results/instance_segmented_point_clouds/ --output_folder sample_playground/instance_seg_with_ground --verbose
 
 # create the instance segmented point clouds with ground folder
 mkdir -p $data_folder/results/instance_segmented_point_clouds_with_ground
