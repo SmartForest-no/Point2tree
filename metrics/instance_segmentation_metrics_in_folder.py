@@ -111,7 +111,15 @@ class InstanceSegmentationMetricsInFolder():
         #     f1_scores_weighted_list.append(f1_score_weighted)
 
         # calculate the mean f1 score of weighted f1 scores
-        mean_f1_score = sum(f1_scores_weighted_list) / len(f1_scores_weighted_list)
+        # mean_f1_score = sum(f1_scores_weighted_list) / len(f1_scores_weighted_list)
+
+        # use a dirty hack to compute the mean of the metrics (accounts for broken point clouds caused by phils code)
+
+        mean_f1_score = sum(f1_scores_weighted_list) / len(gt_las_file_paths)
+
+        print('numer of files: ' + str(len(gt_las_file_paths)))
+
+
         # calculate the mean metrics for all the elements in the metric_dict_list
         # create a mean_metrics dictionary and initialize it with zeros
         mean_metrics = {}
