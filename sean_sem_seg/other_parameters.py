@@ -9,6 +9,7 @@ other_parameters = dict(
     box_overlap=[0.5, 0.5, 0.5],  # Overlap of the sliding box used for semantic segmentation.
     min_points_per_box=1000,  # Minimum number of points for input to the model. Too few points and it becomes near impossible to accurately label them (though assuming vegetation class is the safest bet here).
     max_points_per_box=20000,  # Maximum number of points for input to the model. The model may tolerate higher numbers if you decrease the batch size accordingly (to fit on the GPU), but this is not tested.
+    num_classes = 4,  # Number of classes in the model. Don't change this unless you are changing the model.
     noise_class=0,  # Don't change
     terrain_class=1,  # Don't change
     vegetation_class=2,  # Don't change

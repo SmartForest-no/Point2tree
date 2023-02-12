@@ -3,12 +3,12 @@
 ############################ parameters #################################################
 # General parameters
 CLEAR_INPUT_FOLDER=1  # 1: clear input folder, 0: not clear input folder
-CONDA_ENV="pdal-env" # conda environment for running the pipeline
+CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
 
 # Parameters for the semetnic segmentation
 data_folder="" # path to the folder containing the data
-checkpoint_model_path="./fsct/model/model.pth"
-batch_size=5 # batch size for the inference
+checkpoint_model_path="./fsct/model/model.pth" # path to the checkpoint model (take our basic model as default)
+batch_size=10 # batch size for the inference
 tile_size=10 # tile size in meters
 min_density=75 # minimum density of points in a tile(used for removing small tiles)
 remove_small_tiles=0 # 1: remove small tiles, 0: not remove small tiles
@@ -45,6 +45,11 @@ echo "d: data_folder"
 echo "      The values of the parameters:"
 echo "data_folder: $data_folder"
 echo "remove_small_tiles: $remove_small_tiles"
+echo "checkpoint_model_path: $checkpoint_model_path"
+echo "batch_size: $batch_size"
+echo "tile_size: $tile_size"
+echo "min_density: $min_density"
+
 
 # Do the environment setup
 # check if PYTHONPATH is set to the current directory

@@ -106,6 +106,8 @@ class PostProcessing:
         return grid_points
 
     def process_point_cloud(self):
+        print("Processing point cloud...")
+
         self.terrain_points = self.point_cloud[
             self.point_cloud[:, self.label_index] == self.terrain_class_label
         ]  # -2 is now the class label as we added the height above DTM column.
