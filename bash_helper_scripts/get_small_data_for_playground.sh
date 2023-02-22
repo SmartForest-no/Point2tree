@@ -6,7 +6,7 @@ cp /home/nibio/mutable-outside-world/data/small_file_pipeline_test/small_file_pi
 # change name of the file to first.laz 
 mv $TARGET_FOLDER/small_file_pipeline_test.las $TARGET_FOLDER/first.las
 
-# # make a copy of the file
+# make a copy of the file
 # cp $TARGET_FOLDER/first.las $TARGET_FOLDER/second.las
 
 # # make a copy of the file
