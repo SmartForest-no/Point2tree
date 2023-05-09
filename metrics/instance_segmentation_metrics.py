@@ -9,7 +9,7 @@ from sklearn.neighbors import KDTree
 logging.basicConfig(level=logging.INFO)
 
 class InstanceSegmentationMetrics:
-    GT_LABEL_NAME = 'treeID'  #GT_LABEL_NAME = 'StemID'
+    GT_LABEL_NAME = 'treeID'  #GT_LABEL_NAME = 'StemID', 'treeID'
     TARGET_LABEL_NAME = 'instance_nr'
     def __init__(
         self, 
@@ -290,7 +290,9 @@ class InstanceSegmentationMetrics:
                 hight_of_tree_pred = (self.instance_segmented_las[self.Y_labels == label].z).max() - (self.instance_segmented_las[self.Y_labels == label].z).min()
                
                 # get abs resiudal of the hight of the tree in the prediction
-                residual_hight_of_tree_pred = abs(hight_of_tree_gt - hight_of_tree_pred)
+                residual_hight_of_tree_pred = hight_of_tree_gt - hight_of_tree_pred
+
+                rmse_hight = np.square(residual_hight_of_tree_pred)
 
                 # create tmp dict
                 tmp_dict = {
@@ -299,6 +301,7 @@ class InstanceSegmentationMetrics:
                 'high_of_tree_gt': hight_of_tree_gt,
                 'high_of_tree_pred': hight_of_tree_pred,
                 'residual_hight(gt_minus_pred)': residual_hight_of_tree_pred,
+                'rmse_hight': rmse_hight,
                 'sum_all': sum_all,
                 'true_positive': true_positive, 
                 'false_positive': false_positive, 
@@ -312,7 +315,7 @@ class InstanceSegmentationMetrics:
                 metric_dict[str(label)] = tmp_dict
             
         # list of interesting metrics 
-        interesting_parameters = ['precision', 'recall', 'f1_score', 'IoU', 'residual_hight(gt_minus_pred)']
+        interesting_parameters = ['precision', 'recall', 'f1_score', 'IoU', 'residual_hight(gt_minus_pred)', 'rmse_hight']
 
         # weight the metrics by tree hight
         metric_dict_weighted_by_tree_hight = {}
@@ -328,6 +331,9 @@ class InstanceSegmentationMetrics:
             # divide by the sum of the hights of the trees
             for parameter in interesting_parameters:
                 metric_dict_weighted_by_tree_hight[parameter] /= sum([metric_dict[label]['high_of_tree_gt'] for label in metric_dict.keys()])
+                if parameter == 'rmse_hight':
+                    # compute sqrt of the residual hight (we are computing RMSE)
+                    metric_dict_weighted_by_tree_hight[parameter] = metric_dict_weighted_by_tree_hight[parameter] ** 0.5
 
         # compute the mean of the metrics
         metric_dict_mean = {}
@@ -342,6 +348,9 @@ class InstanceSegmentationMetrics:
 
             for parameter in interesting_parameters:
                 metric_dict_mean[parameter] = metric_dict_mean[parameter] / len(metric_dict)
+                if parameter == 'rmse_hight':
+                    # compute sqrt of the residual hight (we are computing RMSE)
+                    metric_dict_mean[parameter] = metric_dict_mean[parameter] ** 0.5
 
         # compute tree level metrics
         if metric_dict:

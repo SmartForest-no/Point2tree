@@ -19,6 +19,10 @@ from tools import load_file, save_file
 import shutil
 import sys
 
+from other_parameters import other_parameters
+
+NUM_CLASSES = other_parameters['num_classes']
+
 sys.setrecursionlimit(10**8)  # Can be necessary for dealing with large point clouds.
 
 
@@ -60,11 +64,12 @@ def choose_most_confident_label(point_cloud, original_point_cloud):
     )
     _, indices = neighbours.kneighbors(original_point_cloud[:, :3])
 
-    labels = np.zeros((original_point_cloud.shape[0], 5))
-    labels[:, :4] = np.median(point_cloud[indices][:, :, -4:], axis=1)
-    labels[:, 4] = np.argmax(labels[:, :4], axis=1)
+    labels = np.zeros((original_point_cloud.shape[0], NUM_CLASSES + 1))
+    labels[:, :NUM_CLASSES] = np.median(point_cloud[indices][:, :, -NUM_CLASSES:], axis=1)
+    labels[:, NUM_CLASSES] = np.argmax(labels[:, :NUM_CLASSES], axis=1)
 
     original_point_cloud = np.hstack((original_point_cloud, labels[:, 4:]))
+
     return original_point_cloud
 
 class SemanticSegmentation:
@@ -99,7 +104,7 @@ class SemanticSegmentation:
 
         test_loader = DataLoader(test_dataset, batch_size=self.parameters["batch_size"], shuffle=False, num_workers=0)
 
-        model = Net(num_classes=4).to(self.device)
+        model = Net(num_classes=NUM_CLASSES).to(self.device)
         if self.parameters["use_CPU_only"]:
             model.load_state_dict(
                 torch.load(
