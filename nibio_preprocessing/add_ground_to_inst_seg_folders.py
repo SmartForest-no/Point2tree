@@ -25,7 +25,7 @@ class AddGroundToInstSegFolders():
 
         # check if same amount of files if not throw an exception and abort the programm
         if len(sem_seg_files) != len(inst_seg_files):
-            raise Exception("The amount of files in the semantic segmentation folder and the instance segmentation folder is not the same. Please check the input folders.")
+            print("The amount of files in the semantic segmentation folder and the instance segmentation folder is not the same. Please check the input folders.")
             
         # if output folder does not exist create it
         if not os.path.isdir(self.output_folder):

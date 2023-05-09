@@ -1,6 +1,6 @@
 general:
-  input_folder: './maciek'
-  output_folder: './maciek_results'
+  input_folder: './local_input_folder'
+  output_folder: './local_output_folder'
   clean_output_folder: true
   run_sematic_segmentation: true
   run_instance_segmentation: true
