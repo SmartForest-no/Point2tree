@@ -3,7 +3,7 @@
 ############################ parameters #################################################
 # General parameters
 CLEAR_INPUT_FOLDER=1  # 1: clear input folder, 0: not clear input folder
-CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
+CONDA_ENV="pdal-env" # conda environment for running the pipeline
 
 # Tiling parameters
 data_folder="" # path to the folder containing the data

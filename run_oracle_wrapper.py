@@ -26,8 +26,15 @@ def run_oracle_wrapper(path_to_config_file):
     client = ObjectStorageClient(config)
 
     # read system environment variables
-    input_location = os.environ['OBJ_INPUT_LOCATION']
-    output_location = os.environ['OBJ_OUTPUT_LOCATION']
+    # input_location = os.environ['OBJ_INPUT_LOCATION']
+    # output_location = os.environ['OBJ_OUTPUT_LOCATION']
+
+    # input_location = "oci://maciej-seg-test-in@axqlz2potslu/las_files"
+    # output_location = "oci://maciej-seg-test-out@axqlz2potslu"
+
+    input_location = "oci://forestsens_temp@axqlz2potslu/acc_6/batch_274/original_las_files"
+    output_location = "oci://maciej-seg-test-out@axqlz2potslu"
+
 
     # doing for the input
     if input_location is not None:
@@ -36,6 +43,10 @@ def run_oracle_wrapper(path_to_config_file):
         input_folder_in_bucket = parsed_url.path[1:]
         input_bucket_name = parsed_url.netloc.split('@')[0]
         input_namespace = parsed_url.netloc.split('@')[1]
+
+        print("input_folder_in_bucket: ", input_folder_in_bucket)
+        print("input_bucket_name: ", input_bucket_name)
+        print("input_namespace: ", input_namespace)
 
     else:
         print('Taking the input from the default location')
@@ -69,7 +80,16 @@ def run_oracle_wrapper(path_to_config_file):
 
     # copy all files from the bucket to the input folder
     # get the list of objects in the bucket
-    objects = client.list_objects(input_namespace, input_bucket_name).data.objects
+    list_objects_response = client.list_objects(
+        namespace_name=input_namespace,
+        bucket_name=input_bucket_name,
+        prefix=input_folder_in_bucket,
+        limit=1000)
+
+    # objects = client.list_objects(input_namespace, input_bucket_name).data.objects
+    objects = list_objects_response.data.objects
+    # create a list of objects which contain also files not just folders
+    objects = [item for item in objects if item.name[-1] != '/']
 
     # create the input folder if it does not exist
     if not os.path.exists(config_flow_params['general']['input_folder']):
@@ -77,25 +97,26 @@ def run_oracle_wrapper(path_to_config_file):
 
     # download the files from the bucket to the input folder
     for item in objects:
-        if item.name.split('/')[0] == input_folder_in_bucket:
-            if not (item.name.split('/')[1] == ''):
-                object_name = item.name.split('/')[1]
+        object_name = item.name
+        print("object name: ", object_name)
 
-                print('Downloading the file ' + object_name + ' from the bucket ' + input_bucket_name)
-                path_to_object = os.path.join(input_folder_in_bucket, object_name)
-                # get the object
-                file = client.get_object(input_namespace, input_bucket_name, path_to_object)
+        # Get the object's data
+        file = client.get_object(input_namespace, input_bucket_name, object_name)
 
-                # write the object to a file
-                with open(object_name, 'wb') as f:
-                    for chunk in file.data.raw.stream(1024 * 1024, decode_content=False):
-                        f.write(chunk)
+        # Use only the base name of the object for the local file
+        local_file_name = os.path.basename(object_name)
 
-                # check if the file already exists in the input folder and delete it if it does
-                if os.path.exists(config_flow_params['general']['input_folder'] + '/' + object_name):
-                    os.remove(config_flow_params['general']['input_folder'] + '/' + object_name)
-                # move the file to the input folder and overwrite if it already exists
-                shutil.move(object_name, config_flow_params['general']['input_folder'])
+        # Open the local file
+        with open(local_file_name, 'wb') as f:
+            for chunk in file.data.raw.stream(1024 * 1024, decode_content=False):
+                f.write(chunk)
+
+        # remove the file if it already exists
+        if os.path.exists(os.path.join(config_flow_params['general']['input_folder'], object_name)):
+            os.remove(os.path.join(config_flow_params['general']['input_folder'], object_name))
+
+        # move the file to the input folder and overwrite if it already exists
+        shutil.move(local_file_name, config_flow_params['general']['input_folder'])
 
     from run import main
 
@@ -104,7 +125,7 @@ def run_oracle_wrapper(path_to_config_file):
 
     # instance segmentation is set to true
     if config_flow_params['general']['run_instance_segmentation']:
-        path_to_the_output_folder = os.path.join(config_flow_params['general']['output_folder'], 'instance_segmented_point_clouds')
+        path_to_the_output_folder = os.path.join(config_flow_params['general']['output_folder'], 'instance_segmented_point_clouds_with_ground')
     else:
         path_to_the_output_folder = config_flow_params['general']['output_folder']
 
@@ -114,16 +135,13 @@ def run_oracle_wrapper(path_to_config_file):
     # save files to the output bucket 'bucket_lidar_data' in the subfolder 'output'
     for file in list_of_files:
         # get the full path of the file
-        path_to_file = path_to_the_output_folder + '/' + file
-
-        # get the file name
-        file_name = file
+        path_to_file = os.path.join(path_to_the_output_folder, file)
 
         # upload the file to the bucket
         client.put_object(
             output_namespace, 
             output_bucket_name, 
-            os.path.join(output_folder_in_bucket, file_name), 
+            os.path.join(output_folder_in_bucket, file), 
             io.open(path_to_file, 'rb')
             )
 

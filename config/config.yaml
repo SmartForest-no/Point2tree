@@ -1,9 +1,9 @@
 general:
   input_folder: './local_input_folder'
   output_folder: './local_output_folder'
-  clean_output_folder: true
+  clean_output_folder: false
   run_sematic_segmentation: true
-  run_instance_segmentation: true
+  run_instance_segmentation: false
 label_formats:
   label_for_instances_in_gt: 'treeID'
   label_for_instances_in_predicted: 'instance_nr'
