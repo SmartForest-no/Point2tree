@@ -23,8 +23,8 @@ class DensityFilteringInFolders:
             # copy files from os.path.join(self.path_data_out, "_clipped.las") to the input folder and rename them as the original file
             if result is not None:
                 shutil.move(
-                    os.path.join(self.input_folder, os.path.basename(density_filtering.path_data_out), "_clipped.las"), 
-                    os.path.join(self.input_folder, file))
+                    os.path.join(density_filtering.path_data_out, "_clipped.las"), 
+                    os.path.join(file))
         
             
 if __name__ == "__main__":
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     density_filtering_in_folders.filter_density_in_folder()
 
     # a simple way to test the code
-    # python density_filtering_in_folders.py --input_folder /home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/check_maciek/ --min_density 1 --count_threshold 15000 --buffer_size 0.01 --verbose 
+    # python nibio_preprocessing/density_filtering_in_folders.py --input_folder /home/nibio/mutable-outside-world/code/gitlab_fsct/instance_segmentation_classic/check_maciek/ --min_density 1 --count_threshold 15000 --buffer_size 0.01 --verbose 
         
 
 

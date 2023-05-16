@@ -3,7 +3,7 @@
 ############################ parameters #################################################
 # General parameters
 CLEAR_INPUT_FOLDER=1  # 1: clear input folder, 0: not clear input folder
-CONDA_ENV="pdal-env" # conda environment for running the pipeline
+CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
 
 # Parameters for the semetnic segmentation
 data_folder="" # path to the folder containing the data
@@ -104,8 +104,8 @@ fi
 # do the conversion from laz to las if there are laz files in place (this is need for metrics calculation)
 python nibio_preprocessing/convert_files_in_folder.py --input_folder $data_folder --output_folder $data_folder --out_file_type las --in_place --verbose
 
-# do the conversion to ply
-python nibio_preprocessing/convert_files_in_folder.py --input_folder $data_folder --output_folder $data_folder --out_file_type ply --verbose
+# do the density filtering
+python nibio_preprocessing/density_filtering_in_folders.py --input_folder $data_folder --min_density 1 --count_threshold 15000 --buffer_size 0.01
 
 # clear input folder if CLEAR_INPUT_FOLDER is set to 1
 if [ $CLEAR_INPUT_FOLDER -eq 1 ]
@@ -116,6 +116,10 @@ then
     find $data_folder/* -type d -exec rm -rf {} + # delete all the folders in the input folder
     echo "Removed all the files and folders except the ply and las files in the input folder"
 fi
+
+# do the conversion to ply
+python nibio_preprocessing/convert_files_in_folder.py --input_folder $data_folder --output_folder $data_folder --out_file_type ply --verbose
+
 
 # move the output of the first step to the input folder of the second step
 mkdir -p $data_folder/segmented_point_clouds

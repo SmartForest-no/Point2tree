@@ -6,11 +6,8 @@ import glob
 import os
 from pathlib import Path
 
-# filter the density of the point cloud using pdal
-# it does it only for a single file
-
 class DensityFiltering:
-    def __init__(self, path_data, min_density, count_threshold, buffer_size, verbose=False):
+    def __init__(self, path_data, min_density=1, count_threshold=15000, buffer_size=0.01, verbose=False):
         self.path_data = Path(path_data)
         # remove the extension
         self.path_data_out = os.path.join(os.path.dirname(path_data), os.path.basename(path_data).split('.')[0])
