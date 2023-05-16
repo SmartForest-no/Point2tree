@@ -129,7 +129,7 @@ class PostProcessing:
         self.plot_area = self.convexhull.volume / 10000  # volume is area in 2d.
         print("Plot area is approximately", self.plot_area, "ha")
 
-        above_and_below_DTM_trim_dist = 0.2
+        above_and_below_DTM_trim_dist = 0.5 # meters (BEFORE: 0.2)
 
         self.point_cloud = get_heights_above_DTM(
             self.point_cloud, self.DTM

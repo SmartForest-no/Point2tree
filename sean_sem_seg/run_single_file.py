@@ -76,6 +76,7 @@ if __name__ == "__main__":
         delete_working_directory=True,  # Generally leave this on. Deletes the files used for segmentation after segmentation is finished.
         # You may wish to turn it off if you want to re-run/modify the segmentation code so you don't need to run pre-processing every time.
         minimise_output_size_mode=0,  # Will delete a number of non-essential outputs to reduce storage use.
+        grid_resolution=0.1,  # Resolution of the grid used for the DTM.
     )
 
     parameters.update(other_parameters)
@@ -88,12 +89,12 @@ if __name__ == "__main__":
         parameters=parameters,
         # Set below to 0 or 1 (or True/False). Each step requires the previous step to have been run already.
         # For standard use, just leave them all set to 1 except "clean_up_files".
-        preprocess=1,  # Preparation for semantic segmentation.
-        segmentation=1,  # Deep learning based semantic segmentation of the point cloud.
-        postprocessing=1,  # Creates the DTM and applies some simple rules to clean up the segmented point cloud.
-        measure_plot=0,  # The bulk of the plot measurement happens here.
-        make_report=0,  # Generates a plot report, plot map, and some other figures.
-        clean_up_files=0,
+        preprocess=True,  # Preparation for semantic segmentation.
+        segmentation=True,  # Deep learning based semantic segmentation of the point cloud.
+        postprocessing=True,  # Creates the DTM and applies some simple rules to clean up the segmented point cloud.
+        measure_plot=False,  # The bulk of the plot measurement happens here.
+        make_report=False,  # Generates a plot report, plot map, and some other figures.
+        clean_up_files=False,
     )  # Optionally deletes most of the large point cloud outputs to minimise storage requirements.
 
     # copy the output "segmented_cleaned.las" to the output directory
