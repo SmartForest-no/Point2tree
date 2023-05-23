@@ -44,6 +44,4 @@ WORKDIR /app
 ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run_oracle_wrapper.py"]
 
 
-# CMD ["--help" ]
-
 

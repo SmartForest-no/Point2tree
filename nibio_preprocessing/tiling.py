@@ -44,7 +44,9 @@ class Tiling:
                 { 
                     "type":"filters.splitter", 
                     "length":str(self.tile_size), 
-                    "buffer":str(self.tile_buffer) 
+                    "buffer":str(self.tile_buffer), 
+                    "origin_x":"0.0",
+                    "origin_y":"0.0"
                 },
                 {
                     "type":"writers.ply",

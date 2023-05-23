@@ -1,9 +1,9 @@
 general:
-  input_folder: './local_input_folder'
-  output_folder: './local_output_folder'
+  input_folder: 'local_input_folder'
+  output_folder: 'local_output_folder'
   clean_output_folder: false
   run_sematic_segmentation: true
-  run_instance_segmentation: false
+  run_instance_segmentation: true
 label_formats:
   label_for_instances_in_gt: 'treeID'
   label_for_instances_in_predicted: 'instance_nr'
@@ -13,7 +13,7 @@ semantic_segmentation_params:
   batch_size : 5 # batch size for inference
   tile_size: 10 # tile size in meters
   min_density: 100 # minimum density of points in a tile(used for removing small tiles)
-  remove_small_tiles: 1 # 1: remove small tiles, 0: not remove small tiles
+  remove_small_tiles: 0 # 1: remove small tiles, 0: not remove small tiles
 instance_segmentation_params:
   instance_segmentation_script: './run_bash_scripts/tls.sh' 
   n_tiles: 3
