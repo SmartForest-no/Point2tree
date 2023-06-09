@@ -117,7 +117,7 @@ Folder `input_folder/results` contain three subfolders:
 ```
 
 # The paper
-[Maciej Wielgosz and Stefano Puliti and Phil Wilkes and Rasmus Astrup. (2023). Point2Tree(P2T). arXiv preprint. arXiv:2305.02651.](https://arxiv.org/abs/2305.02651)
+[Maciej Wielgosz, Stefano Puliti, Phil Wilkes, Rasmus Astrup. (2023). Point2Tree(P2T). arXiv preprint. arXiv:2305.02651.](https://arxiv.org/abs/2305.02651)
 
 
 # Orinal repo
