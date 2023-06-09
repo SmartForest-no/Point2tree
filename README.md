@@ -100,7 +100,7 @@ bash run_bash_scripts/tls.sh -d folder_name
 
 This is a basic run of the command. There are more parameters to be set. Take a look into `run_bash_scripts/tls.sh` to check them.
 
-## The stages of the steps executed in the pipeline are as follows :
+# The stages of the steps executed in the pipeline are as follows :
 * reduction of the point clound size to the point where it has density of 150 points / square meter
 * mapping to `*.ply` format, all the reducted`*.las` files are mapped and the orignal files are removed (the converted to `*ply` are kept)
 * semantic segmentation,
@@ -115,6 +115,10 @@ Folder `input_folder/results` contain three subfolders:
 +--instance_segmented_point_clouds
 +--segmented_point_clouds
 ```
+
+# The paper
+[Maciej Wielgosz and Stefano Puliti and Phil Wilkes and Rasmus Astrup. (2023). Point2Tree(P2T). arXiv preprint. arXiv:2305.02651.](https://arxiv.org/abs/2305.02651)
+
 
 # Orinal repo
 For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT
