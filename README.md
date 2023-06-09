@@ -66,8 +66,6 @@ It may take <ins> very long time </ins> depending on your machine and the number
 
 The default model which is available in the repo in `fsct\model\model.path` was trained on the nibio data with <ins> 1 cm sampling (0.01m) </ins> the val accuracy was approx. 0.92.
 
-Make sure that you put the data in `*.las` or  `*.laz` format to this folder. 
-
 The pipeline is composed of serveral steps and input parametes in `/run_bash_scripts/sem_seg_sean.sh and /run_bash_scripts/tls.h`  which can be set before the run. 
 
 The subset of the default parameters are as follows:
@@ -107,6 +105,8 @@ To run semantic segmentation follow:
 ```
 bash run_bash_scripts/sem_seg_sean.sh -d folder_name
 ```
+Make sure that you put the data in `*.las` or  `*.laz` format to this folder. 
+
 This is a basic run of the command. There are more parameters to be set. Take a look into `run_bash_scripts/sem_seg_sean.sh` to check them.
 
 ## Running instance segmentation
