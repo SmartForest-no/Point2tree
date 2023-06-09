@@ -121,6 +121,7 @@ Folder `input_folder/results` contain three subfolders:
 
 
 # Orinal repo
-For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT
+For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT and https://github.com/philwilkes/TLS2trees
+
 
 
