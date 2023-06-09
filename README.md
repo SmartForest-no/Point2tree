@@ -69,7 +69,7 @@ The default model which is available in the repo in `fsct\model\model.path` was 
 
 Make sure that you put the data in `*.las` format to this folder. If your files are in a different format e.g. `*.laz` you can use `python nibio_preprocessing/convert_files_in_folder.py --input_folder input_folder_name --output_folder output_folder las ` to convert your file to `*.las` format. 
 
-The pipeline is composed of serveral steps and input parametes in `run_all.sh input_folder_name` should be set before the run. The default parameters are as follows:
+The pipeline is composed of serveral steps and input parametes in `/run_bash_scripts/sem_seg_sean.sh and /run_bash_scripts/tls.h` should be set before the run. The default parameters are as follows:
 ```
 CLEAR_INPUT_FOLDER=1  # 1: clear input folder, 0: not clear input folder
 CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
@@ -99,17 +99,21 @@ Folder `input_folder/results` contain three subfolders:
 +--segmented_point_clouds
 ```
 
-## Running with sample files
-The repo comes with sample file. You can use them to test your setup. To run the folow do:
+## Running semantic segmentation
+Semantic segmentation should be run before the instance segmentation since the latter one requires results from the semantic segmentation. 
+
+To run semantic segmentation follow:
 ```
-chmod +x run_sample.sh
-./run_sample.sh
+bash run_bash_scripts/sem_seg_sean.sh -d folder_name
+```
+This is a basic run of the command. There are more parameters to be set. Take a look into `run_bash_scripts/sem_seg_sean.sh` to check them.
+
+## Running instance segmentation
+To run instance segmentation follow:
+
+```
+bash run_bash_scripts/tls.sh -d folder_name
+
 ```
 
-## Running with your files
-You have to provide a `folder_path`. This is the location of your `*.las` files.
-
-```
-chmod +x run_all_fine_grained.sh
-./run_all_fine_grained.sh folder_path
-```
+This is a basic run of the command. There are more parameters to be set. Take a look into `run_bash_scripts/tls.sh` to check them.
