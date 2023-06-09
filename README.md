@@ -1,8 +1,3 @@
-# Orinal repo
-For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT
-
-
-
 # Installation steps of the pipeline
 The installation involves conda.
 
@@ -82,21 +77,7 @@ GRAPH_MAXIMUM_CUMULATIVE_GAP=3
 ADD_LEAVES_VOXEL_LENGTH=0.5
 FIND_STEMS_MIN_POINTS=50
 ```
-The stages of the steps executed in the pipeline are as follows :
-* reduction of the point clound size to the point where it has density of 150 points / square meter
-* mapping to `*.ply` format, all the reducted`*.las` files are mapped and the orignal files are removed (the converted to `*ply` are kept)
-* semantic segmentation,
-* instance segmentation,
-* consolidation of the results (each instance is seperate so they have to be consolidated into a single cloud point),
-* postprocessing which puts everthing to a single folder in `input_folder/results`. 
 
-Folder `input_folder/results` contain three subfolders: 
-```
-.
-+--input_data
-+--instance_segmented_point_clouds
-+--segmented_point_clouds
-```
 
 ## Running semantic segmentation
 Semantic segmentation should be run before the instance segmentation since the latter one requires results from the semantic segmentation. 
@@ -118,3 +99,24 @@ bash run_bash_scripts/tls.sh -d folder_name
 ```
 
 This is a basic run of the command. There are more parameters to be set. Take a look into `run_bash_scripts/tls.sh` to check them.
+
+## The stages of the steps executed in the pipeline are as follows :
+* reduction of the point clound size to the point where it has density of 150 points / square meter
+* mapping to `*.ply` format, all the reducted`*.las` files are mapped and the orignal files are removed (the converted to `*ply` are kept)
+* semantic segmentation,
+* instance segmentation,
+* consolidation of the results (each instance is seperate so they have to be consolidated into a single cloud point),
+* postprocessing which puts everthing to a single folder in `input_folder/results`. 
+
+Folder `input_folder/results` contain three subfolders: 
+```
+.
++--input_data
++--instance_segmented_point_clouds
++--segmented_point_clouds
+```
+
+# Orinal repo
+For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT
+
+
