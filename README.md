@@ -61,15 +61,16 @@ For Windows you can check: <https://stackoverflow.com/questions/3701646/how-to-a
 
 
 ## Running a whole pipeline
-In order to run a whole pipeline run the following command: `./run_all.sh folder`. 
 
 It may take <ins> very long time </ins> depending on your machine and the number of files and if you change the parameter if points density (by default its 150) to some lower number. The lower the number the bigger pointclounds are to be precessed and more time it may take. Keep in mind that at some point (for too low of the number) the pipeline may break. 
 
 The default model which is available in the repo in `fsct\model\model.path` was trained on the nibio data with <ins> 1 cm sampling (0.01m) </ins> the val accuracy was approx. 0.92.
 
-Make sure that you put the data in `*.las` format to this folder. If your files are in a different format e.g. `*.laz` you can use `python nibio_preprocessing/convert_files_in_folder.py --input_folder input_folder_name --output_folder output_folder las ` to convert your file to `*.las` format. 
+Make sure that you put the data in `*.las` or  `*.laz` format to this folder. 
 
-The pipeline is composed of serveral steps and input parametes in `/run_bash_scripts/sem_seg_sean.sh and /run_bash_scripts/tls.h` should be set before the run. The default parameters are as follows:
+The pipeline is composed of serveral steps and input parametes in `/run_bash_scripts/sem_seg_sean.sh and /run_bash_scripts/tls.h`  which can be set before the run. 
+
+The subset of the default parameters are as follows:
 ```
 CLEAR_INPUT_FOLDER=1  # 1: clear input folder, 0: not clear input folder
 CONDA_ENV="pdal-env-1" # conda environment for running the pipeline
@@ -83,7 +84,7 @@ GRAPH_MAXIMUM_CUMULATIVE_GAP=3
 ADD_LEAVES_VOXEL_LENGTH=0.5
 FIND_STEMS_MIN_POINTS=50
 ```
-The stages are :
+The stages of the steps executed in the pipeline are as follows :
 * reduction of the point clound size to the point where it has density of 150 points / square meter
 * mapping to `*.ply` format, all the reducted`*.las` files are mapped and the orignal files are removed (the converted to `*ply` are kept)
 * semantic segmentation,
