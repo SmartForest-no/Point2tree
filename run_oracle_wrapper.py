@@ -26,14 +26,14 @@ def run_oracle_wrapper(path_to_config_file):
     client = ObjectStorageClient(config)
 
     # read system environment variables
-    # input_location = os.environ['OBJ_INPUT_LOCATION']
-    # output_location = os.environ['OBJ_OUTPUT_LOCATION']
+    input_location = os.environ['OBJ_INPUT_LOCATION']
+    output_location = os.environ['OBJ_OUTPUT_LOCATION']
 
     # input_location = "oci://maciej-seg-test-in@axqlz2potslu/las_files"
     # output_location = "oci://maciej-seg-test-out@axqlz2potslu"
 
-    input_location = "oci://forestsens_temp@axqlz2potslu/acc_6/batch_274/original_las_files"
-    output_location = "oci://maciej-seg-test-out@axqlz2potslu"
+    # input_location = "oci://forestsens_temp@axqlz2potslu/acc_6/batch_274/original_las_files"
+    # output_location = "oci://maciej-seg-test-out@axqlz2potslu"
 
 
     # doing for the input
@@ -128,6 +128,11 @@ def run_oracle_wrapper(path_to_config_file):
         path_to_the_output_folder = os.path.join(config_flow_params['general']['output_folder'], 'instance_segmented_point_clouds_with_ground')
     else:
         path_to_the_output_folder = config_flow_params['general']['output_folder']
+
+    # zip the files in path_to_the_output_folder
+    zip_file_name  = 'results'
+    shutil.make_archive(zip_file_name, 'zip', path_to_the_output_folder) # this will be done in the current folder
+    shutil.copy('results.zip', path_to_the_output_folder)
 
     # get list of files in the output folder
     list_of_files = os.listdir(path_to_the_output_folder)
