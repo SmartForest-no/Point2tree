@@ -1,0 +1,4 @@
+Dockerfile - set correct oracle wrapper
+build.sh
+run_oracle_wrapper.py or run_oracle_wrapper_local.py -> set paths
+config.yaml -> pick segmentation or instance segmentation
