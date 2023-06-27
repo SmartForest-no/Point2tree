@@ -9,7 +9,7 @@ import yaml
 
 from run import main
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 def run_oracle_wrapper(path_to_config_file):
 
@@ -22,6 +22,8 @@ def run_oracle_wrapper(path_to_config_file):
     if DEBUG_MODE:
         input_location = "local_folder_in/las_files/"
         output_location = "local_folder_out/las_files/"
+        # remove content of the output folder
+        shutil.rmtree(output_location, ignore_errors=True)
     else:
         # get the input and output locations from the environment variables
         input_location = os.environ['OBJ_INPUT_LOCATION']
