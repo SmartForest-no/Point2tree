@@ -1,4 +1,4 @@
 Dockerfile - set correct oracle wrapper
 build.sh
-run_oracle_wrapper.py or run_oracle_wrapper_local.py -> set paths
+run_oracle_wrapper.py or run_oracle_wrapper_local.py -> pick a right mode (DEBUG or not)
 config.yaml -> pick segmentation or instance segmentation

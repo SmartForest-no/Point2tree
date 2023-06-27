@@ -1,13 +1,15 @@
-# This is the the file to be run on the oracle cloud
+# Author: Maciej Wielgosz 
+# THis the oracle wrapper for the Oracle Cloud Infrastructure (OCI) environment and Docker container
 
-import oci
 import argparse
 import os
-import io
 import shutil
+
 import yaml
 
 from run import main
+
+DEBUG_MODE = False
 
 def run_oracle_wrapper(path_to_config_file):
 
@@ -16,15 +18,19 @@ def run_oracle_wrapper(path_to_config_file):
         config_flow_params = yaml.load(f, Loader=yaml.FullLoader)
 
     # read system environment variables
-    # input_location = os.environ['OBJ_INPUT_LOCATION']
-    # output_location = os.environ['OBJ_OUTPUT_LOCATION']
 
-    # remap the input and output locations
-    # input_location = input_location.replace("@axqlz2potslu", "").replace("oci://", "/mnt/")
-    # output_location = output_location.replace("@axqlz2potslu", "").replace("oci://", "/mnt/")
+    if DEBUG_MODE:
+        input_location = "local_folder_in/las_files/"
+        output_location = "local_folder_out/las_files/"
+    else:
+        # get the input and output locations from the environment variables
+        input_location = os.environ['OBJ_INPUT_LOCATION']
+        output_location = os.environ['OBJ_OUTPUT_LOCATION']
 
-    input_location = "local_folder_in/las_files/"
-    output_location = "local_folder_out/las_files/"
+        # remap the input and output locations
+        input_location = input_location.replace("@axqlz2potslu", "").replace("oci://", "/mnt/")
+        output_location = output_location.replace("@axqlz2potslu", "").replace("oci://", "/mnt/")
+
 
     # copy files from input_location to the input folder
     shutil.copytree(input_location, config_flow_params['general']['input_folder'])
