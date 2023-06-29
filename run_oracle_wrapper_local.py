@@ -20,10 +20,11 @@ def run_oracle_wrapper(path_to_config_file):
     # read system environment variables
 
     if DEBUG_MODE:
-        input_location = "local_folder_in/las_files/"
-        output_location = "local_folder_out/las_files/"
-        # remove content of the output folder
-        shutil.rmtree(output_location, ignore_errors=True)
+        input_location = "local_folder_oracle/las_files/"
+        output_location = "local_folder_oracle/results/"
+        # remove content of the output folder if it exists
+        if os.path.exists(output_location):
+            shutil.rmtree(output_location, ignore_errors=True)
     else:
         # get the input and output locations from the environment variables
         input_location = os.environ['OBJ_INPUT_LOCATION']
@@ -32,6 +33,9 @@ def run_oracle_wrapper(path_to_config_file):
         # remap the input and output locations
         input_location = input_location.replace("@axqlz2potslu", "").replace("oci://", "/mnt/")
         output_location = output_location.replace("@axqlz2potslu", "").replace("oci://", "/mnt/")
+
+    # create the output folder if it does not exist
+    os.makedirs(output_location, exist_ok=True)
 
 
     # copy files from input_location to the input folder
