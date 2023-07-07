@@ -37,14 +37,17 @@ RUN pip install parse oci ocifs
 COPY requirements.txt app/requirements.txt
 RUN pip install --no-cache -r app/requirements.txt
 
-COPY . /app
+# COPY . /app
+# WORKDIR /app
 
-WORKDIR /app
+COPY . /home/datascience/app
+WORKDIR /home/datascience/app
 
 # ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run_oracle_wrapper.py"]
 
-ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run_oracle_wrapper_local.py"]
+# ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/app/run_oracle_wrapper_local.py"]
 
+ENTRYPOINT ["/miniconda/bin/conda", "run", "-n", "pdal-env", "python", "/home/datascience/app/run_oracle_wrapper_local.py"]
 
 
 

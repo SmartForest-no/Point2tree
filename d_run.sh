@@ -6,8 +6,9 @@ echo "Running the container"
 # docker run --gpus all --name test_oracle nibio/pc-geoslam-oracle
 docker run -it --gpus all \
     --name test_oracle \
-    --mount type=bind,source=/home/nibio/mutable-outside-world/code/oracle_deploy/instance_segmentation_classic/local_folder_oracle,target=/app/local_folder_oracle \
-    nibio/pc-geoslam-oracle
+    --mount type=bind,source=/home/nibio/mutable-outside-world/code/oracle_deploy/instance_segmentation_classic/local_folder_oracle,target=/home/datascience/app/local_folder_oracle \
+    --mount type=bind,source=/home/nibio/mutable-outside-world/code/oracle_deploy/instance_segmentation_classic/local_folder_oracle_hard,target=/home/datascience/app/local_folder_oracle_hard \
+    nibio/pc-geoslam-oracle > test_oracle.log 2>&1
 
 
 
