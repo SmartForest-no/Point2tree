@@ -1,6 +1,6 @@
 general:
-  input_folder: 'local_input_folder'
-  output_folder: 'local_output_folder'
+  input_folder: '/home/datascience/local_input_folder'
+  output_folder: '/home/datascience/local_output_folder'
   clean_output_folder: false
   run_sematic_segmentation: true
   run_instance_segmentation: false

@@ -9,7 +9,7 @@ import yaml
 
 from run import main
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 def run_oracle_wrapper(path_to_config_file):
 
@@ -20,11 +20,11 @@ def run_oracle_wrapper(path_to_config_file):
     # read system environment variables
 
     if DEBUG_MODE:
-        input_location = "local_folder_oracle_hard/las_files/"
-        output_location = "local_folder_oracle_hard/results/"
+        input_location = "/home/bucket/local_folder_oracle_hard/las_files/"
+        output_location = "/home/bucket/local_folder_oracle_hard/results/"
 
-        # input_location = "local_folder_oracle/las_files/"
-        # output_location = "local_folder_oracle/results/"
+        # input_location = "/home/bucket/local_folder_oracle/las_files/"
+        # output_location = "/home/bucket/local_folder_oracle/results/"
 
         # remove content of the output folder if it exists
         if os.path.exists(output_location):

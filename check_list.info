@@ -1,10 +1,11 @@
 Dockerfile - set correct oracle wrapper
 
-# core steps
+### core steps
 build.sh
 run_oracle_wrapper.py or run_oracle_wrapper_local.py -> pick a right mode (DEBUG or not)
 config.yaml -> pick segmentation or instance segmentation
 
 # pushing docker 
+build.sh
 docker tag nibio/pc-geoslam-oracle-inst-seg:latest fra.ocir.io/axqlz2potslu/nibio/pc-geoslam-oracle-inst-seg
 docker push fra.ocir.io/axqlz2potslu/nibio/pc-geoslam-oracle-sem-seg

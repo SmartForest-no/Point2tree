@@ -17,3 +17,6 @@ sample_data/segmented_point_clouds/*
 *.json
 *.png
 *.txt
+*.log
+*.pem
+config_oracle
