@@ -36,10 +36,10 @@ You should reboot shell session at this point.
 Next, you should clone the repo with the following command: 
 
 ```
-git clone git@gitlab.nibio.no:maciekwielgosz/instance_segmentation_classic.git
+git clone git@gitlab.nibio.no:maciekwielgosz/Point2tree.git
 ```
 if you didn't exchange ssh keys you may need to use the following command:
- `git clone https://gitlab.nibio.no/maciekwielgosz/instance_segmentation_classic`
+ `git clone https://gitlab.nibio.no/maciekwielgosz/Point2tree`
 
 You have to install requirements for the repo.
  ```
@@ -120,8 +120,10 @@ Folder `input_folder/results` contain three subfolders:
 [Maciej Wielgosz, Stefano Puliti, Phil Wilkes, Rasmus Astrup. (2023). Point2Tree(P2T). arXiv preprint. arXiv:2305.02651.](https://arxiv.org/abs/2305.02651)
 
 
-# Orinal repo
-For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT and https://github.com/philwilkes/TLS2trees
+# Orginal repo
+For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT and
+
+https://github.com/philwilkes/TLS2trees
 
 
 
