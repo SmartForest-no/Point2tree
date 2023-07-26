@@ -36,10 +36,9 @@ You should reboot shell session at this point.
 Next, you should clone the repo with the following command: 
 
 ```
-git clone git@gitlab.nibio.no:maciekwielgosz/Point2tree.git
+git clone https://github.com/SmartForest-no/Point2tree
 ```
-if you didn't exchange ssh keys you may need to use the following command:
- `git clone https://gitlab.nibio.no/maciekwielgosz/Point2tree`
+
 
 You have to install requirements for the repo.
  ```
@@ -121,7 +120,9 @@ Folder `input_folder/results` contain three subfolders:
 
 
 # Orginal repo
-For the orignal repo, please take a look there: https://github.com/philwilkes/FSCT and
+For the orignal repo, please take a look there: 
+
+https://github.com/philwilkes/FSCT
 
 https://github.com/philwilkes/TLS2trees
 
