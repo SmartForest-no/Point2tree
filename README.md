@@ -36,7 +36,7 @@ You should reboot shell session at this point.
 Next, you should clone the repo with the following command: 
 
 ```
-git clone https://github.com/SmartForest-no/Point2tree
+git clone https://github.com/SmartForest-no/Point2tree.git
 ```
 
 
