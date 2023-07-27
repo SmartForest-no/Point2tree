@@ -116,8 +116,7 @@ Folder `input_folder/results` contain three subfolders:
 ```
 
 # The paper
-[Maciej Wielgosz, Stefano Puliti, Phil Wilkes, Rasmus Astrup. (2023). Point2Tree(P2T). arXiv preprint. arXiv:2305.02651.](https://arxiv.org/abs/2305.02651)
-
+If you use our code please cite : https://www.mdpi.com/2072-4292/15/15/3737
 
 # Orginal repo
 For the orignal repo, please take a look there: 
