@@ -1,3 +1,7 @@
+# Point2Tree - a framework for semantic segmentation, instance segmentation, and hyperparameter optimization
+This repo includes the scripts to replicate the methods described in [Wielgosz et al. 2023](https://www.mdpi.com/2072-4292/15/15/3737) to perform a semantic and instance segmentation of trees in terrestrial laser scanning data (TLS/MLS).
+![P2T](https://github.com/SmartForest-no/Point2tree/assets/5663984/1bd1f06f-41ca-40a4-98f2-d42f5055e9b3)
+
 # Installation steps of the pipeline
 The installation involves conda.
 
