@@ -7,6 +7,8 @@ The installation involves conda.
 
 The steps to take on Ubuntu 20.04 machine on a linux machine or in a docker:
 
+If you go for the docker you can use files which are in`./docker`. Install it first and then follow the steps which are given below.
+
 ```
 UBUNTU_VER=20.04
 CONDA_VER=latest
