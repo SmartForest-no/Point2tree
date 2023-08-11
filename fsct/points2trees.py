@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
+import scipy
 
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
@@ -65,16 +66,18 @@ def generate_path(samples, origins, n_neighbours=200, max_length=0):
 
     return paths
 
-
 def cube(pc):
-    
     if len(pc) > 5:
-        vertices = ConvexHull(pc[['x', 'y', 'z']]).vertices
-        idx = np.random.choice(vertices, size=len(vertices), replace=False)
-        return pc.loc[pc.index[idx]]
+        try:
+            vertices = ConvexHull(pc[['x', 'y', 'z']]).vertices
+            idx = np.random.choice(vertices, size=len(vertices), replace=False)
+            return pc.loc[pc.index[idx]]
+        except scipy.spatial.qhull.QhullError as e:
+            print(f"Error computing convex hull for group with {len(pc)} points: {e}")
+            # Handle the special case as needed, e.g., return the input or a default value
+            return pc
     else:
-        return pc 
-    
+        return pc
 
 if __name__ == '__main__':
     
@@ -199,11 +202,13 @@ if __name__ == '__main__':
     
     # group skeleton points
     grouped = stem_pc.loc[stem_pc.clstr != -1].groupby('clstr')
+
     if params.verbose: print('fitting convex hulls to clusters')
     if params.pandarallel:
         chull = grouped.parallel_apply(cube) # parallel_apply only works witn pd < 1.3
     else:
         chull = grouped.apply(cube) # don't think works with Jasmin or parallel_apply only works witn pd < 1.3
+    
     chull = chull.reset_index(drop=True) 
     
     ### identify possible stems ###
