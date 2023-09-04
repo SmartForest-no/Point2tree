@@ -121,6 +121,9 @@ Folder `input_folder/results` contain three subfolders:
 +--segmented_point_clouds
 ```
 
+# Important 
+ Input point clouds should be in a local reference system and not in UTM (in which case the code breaks)
+
 # The paper
 If you use our code please cite : https://www.mdpi.com/2072-4292/15/15/3737
 
@@ -128,6 +131,7 @@ If you use our code please cite : https://www.mdpi.com/2072-4292/15/15/3737
 For the orignal repo, please take a look there: 
 
 https://github.com/philwilkes/FSCT
+
 
 https://github.com/philwilkes/TLS2trees
 
