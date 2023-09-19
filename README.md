@@ -82,7 +82,16 @@ GRAPH_MAXIMUM_CUMULATIVE_GAP=3
 ADD_LEAVES_VOXEL_LENGTH=0.5
 FIND_STEMS_MIN_POINTS=50
 ```
+# Sematic labels expected
 
+Sematic labels expected:
+1 - ground
+
+2 - vegetation
+
+3 - cwd
+
+4 - trunk
 
 ## Running semantic segmentation
 Semantic segmentation should be run before the instance segmentation since the latter one requires results from the semantic segmentation. 
